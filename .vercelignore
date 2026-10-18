@@ -1,6 +1,6 @@
 .git
 dist
-lilt
+/lilt
 *.test
 *.prof
 site/dist

@@ -2,8 +2,8 @@
 
 This document describes the design and implementation of threads, the long-running multi-turn conversations with a coding harness:
 
-- the store, turn runner, event feed and HTTP surface: [`thread.go`](../../thread.go)
-- the selected harness and change settling it reuses: [`agent.go`](../../agent.go)
+- the store, turn runner, event feed and HTTP surface: [`thread.go`](../../internal/app/thread.go)
+- the selected harness and change settling it reuses: [`agent.go`](../../internal/app/agent.go)
 - the sidebar views, streams and composer: [`web/src/thread.js`](../../web/src/thread.js)
 
 Threads are the conversational sibling of [inline edits](agent-editing.md). They share the harness selection, the headless invocation contract, `changedSince` and `settle`. They differ in three ways: a thread persists, it continues one harness session across turns, and it has no overlap guard.

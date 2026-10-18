@@ -34,7 +34,7 @@ From the repository directory:
 
 ```bash
 node scripts/build-web.js
-go build -trimpath -o lilt .
+go build -trimpath -o lilt ./cmd/lilt
 ./lilt .
 ```
 
@@ -82,10 +82,25 @@ make build                      # bundle interface and compile ./lilt
 make test                       # bundle interface and run Go tests
 node scripts/check-web.js       # validate browser modules and frontend tests
 node scripts/build-site.js      # build the landing page into site/dist
-go run . .                      # run the bundled application from source
+go run ./cmd/lilt .             # run the bundled application from source
 ```
 
 After changing browser modules, rerun `node scripts/build-web.js` and restart the Go process to refresh its embedded assets.
+
+### Project layout
+
+```text
+cmd/lilt/       Command entry point
+internal/app/   Application services, HTTP API, and colocated Go tests
+internal/       Focused fuzzy search, ignore, metrics, and table packages
+web/            Browser interface, themes, and frontend modules
+site/           Public landing page
+scripts/        Frontend and landing-page build tools
+docs/           Architecture, features, and publishing guides
+assets.go       Embedded version and browser resources
+```
+
+`VERSION` remains the release source of truth. The root resource package embeds it and the bundled interface so the application still ships as one binary. Build the command with `go build -o lilt ./cmd/lilt`; run all Go tests with `go test ./...` after bundling the web assets.
 
 Performance depends on the workspace, machine, browser, and optional tools. [BENCHMARKS.md](BENCHMARKS.md) retains historical upstream px0 measurements and reproduction commands; these are not new Lilt results.
 

@@ -1,4 +1,4 @@
-.PHONY: all build web test dist publish clean help
+.PHONY: all build web web-check test test-short check bench benchmark dist publish clean help
 
 VERSION ?= $(shell cat VERSION 2>/dev/null | tr -d ' \r\n')
 # Support 'make publish 0.2.0' where target argument is passed as next goal
@@ -18,7 +18,7 @@ CLEAN_VERSION := $(patsubst v%,%,$(TARGET_VERSION))
 POSTHOG_KEY ?= $(LILT_POSTHOG_KEY)
 LDFLAGS := -s -w
 ifneq ($(strip $(POSTHOG_KEY)),)
-  LDFLAGS += -X main.posthogKey=$(strip $(POSTHOG_KEY))
+  LDFLAGS += -X github.com/aryan-rathore13/lilt/internal/app.posthogKey=$(strip $(POSTHOG_KEY))
 endif
 
 all: build
@@ -40,7 +40,7 @@ web:
 
 build: web
 	@echo "Building lilt for local system..."
-	go build -trimpath -ldflags="$(LDFLAGS)" -o lilt .
+	go build -trimpath -ldflags="$(LDFLAGS)" -o lilt ./cmd/lilt
 	@echo "Built ./lilt ($$(du -h lilt | cut -f1))"
 
 test: web
@@ -49,16 +49,19 @@ test: web
 web-check:
 	@node ./scripts/check-web.js
 
-test-short:
-	go test -short .
+test-short: web
+	go test -short ./...
 
 check: web-check web test-short
 
-bench:
-	go test -bench=. -benchmem -run=^$$ .
+bench: web
+	go test -bench=. -benchmem -run=^$$ ./internal/app
 
 benchmark: build
 	./benchmark.sh
+
+dist:
+	@./build.sh
 
 publish:
 	@if [ -z "$(CLEAN_VERSION)" ]; then \

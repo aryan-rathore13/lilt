@@ -50,7 +50,7 @@ jobs:
         run: node ./scripts/build-web.js
 
       - name: Build lilt
-        run: go build -trimpath -o lilt .
+        run: go build -trimpath -o lilt ./cmd/lilt
 
       - name: Run tests
         run: go test -v ./...

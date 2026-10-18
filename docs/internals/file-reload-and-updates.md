@@ -1,6 +1,6 @@
 # File Updates & In-Place Tab Reloading
 
-This document details the end-to-end architecture, performance optimizations, and edge-case handling for workspace file updates and tab reloading ([`web/src/tabs.js`](../../web/src/tabs.js), [`web/src/panels.js`](../../web/src/panels.js), [`server.go`](../../server.go), and [`highlight.go`](../../highlight.go)), introduced in commit `c33376b4b43b2ae3ecbc6fedd45b9dee0726a401`.
+This document details the end-to-end architecture, performance optimizations, and edge-case handling for workspace file updates and tab reloading ([`web/src/tabs.js`](../../web/src/tabs.js), [`web/src/panels.js`](../../web/src/panels.js), [`server.go`](../../internal/app/server.go), and [`highlight.go`](../../internal/app/highlight.go)), introduced in commit `c33376b4b43b2ae3ecbc6fedd45b9dee0726a401`.
 
 ---
 
@@ -142,7 +142,7 @@ const results = await Promise.allSettled(
 
 ### Step 4: Backend Invalidation & Cache Coherence
 
-On the Go server, `/api/file` calls `Open(abs, rel)` in [`highlight.go`](../../highlight.go):
+On the Go server, `/api/file` calls `Open(abs, rel)` in [`highlight.go`](../../internal/app/highlight.go):
 
 ```go
 key := fmt.Sprintf("%s|%d|%d", abs, st.ModTime().UnixNano(), st.Size())

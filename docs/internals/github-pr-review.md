@@ -1,6 +1,6 @@
 # Git Forge PR Review & Provider Architecture
 
-This document describes the design and implementation of lilt's pull request review feature: the `GitProvider` abstraction layer ([`provider.go`](../../provider.go)), GitHub REST implementation ([`github.go`](../../github.go)), checkout lifecycle and progress reporting ([`pr.go`](../../pr.go)), merge-base diffing ([`git.go`](../../git.go)), and the frontend review interface ([`web/src/pr.js`](../../web/src/pr.js), [`web/src/linecomment.js`](../../web/src/linecomment.js)).
+This document describes the design and implementation of lilt's pull request review feature: the `GitProvider` abstraction layer ([`provider.go`](../../internal/app/provider.go)), GitHub REST implementation ([`github.go`](../../internal/app/github.go)), checkout lifecycle and progress reporting ([`pr.go`](../../internal/app/pr.go)), merge-base diffing ([`git.go`](../../internal/app/git.go)), and the frontend review interface ([`web/src/pr.js`](../../web/src/pr.js), [`web/src/linecomment.js`](../../web/src/linecomment.js)).
 
 ---
 
@@ -16,7 +16,7 @@ Two core lilt tenets shape pull request reviews:
 
 ## 2. Extensible Forge Architecture (`GitProvider`)
 
-To support multiple git forges (GitHub, GitLab, Bitbucket, etc.) without entangling core review logic, forge interactions are abstracted behind the `GitProvider` interface in [`provider.go`](../../provider.go):
+To support multiple git forges (GitHub, GitLab, Bitbucket, etc.) without entangling core review logic, forge interactions are abstracted behind the `GitProvider` interface in [`provider.go`](../../internal/app/provider.go):
 
 ```go
 type GitProvider interface {

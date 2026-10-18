@@ -1,6 +1,6 @@
 # Git Awareness, Diffing & Stage/Commit/Push/Pull
 
-This document describes the design and implementation of lilt's git integration engine ([`git.go`](../../git.go)), its diff-rendering frontend ([`web/src/diff.js`](../../web/src/diff.js)), and the sidebar git panel that stages, commits, pushes, and pulls ([`web/src/gitpanel.js`](../../web/src/gitpanel.js), [`web/src/tree.js`](../../web/src/tree.js)).
+This document describes the design and implementation of lilt's git integration engine ([`git.go`](../../internal/app/git.go)), its diff-rendering frontend ([`web/src/diff.js`](../../web/src/diff.js)), and the sidebar git panel that stages, commits, pushes, and pulls ([`web/src/gitpanel.js`](../../web/src/gitpanel.js), [`web/src/tree.js`](../../web/src/tree.js)).
 
 ## 1. Zero-Dependency Shell-Out Architecture
 
@@ -304,7 +304,7 @@ For a plain workspace, `handleGitPush` runs a bare `gitPush` (`git push`); if th
 | `/api/git/pull` | POST | Fast-forward pull, or (PR session) re-sync with the PR head. `409` on divergence or uncommitted changes. |
 | `/api/git/commit-message` | POST | Dispatch the selected harness to write a commit message for the staged diff. Returns an `agentJob`, polled via `/api/agent/job`. `400` if nothing is staged or no harness is selected. |
 
-Every write endpoint is guarded by `localPost` ([`lspsetup.go`](../../lspsetup.go)), the same POST-only, same-origin, IP-or-localhost check every other mutating lilt endpoint uses.
+Every write endpoint is guarded by `localPost` ([`lspsetup.go`](../../internal/app/lspsetup.go)), the same POST-only, same-origin, IP-or-localhost check every other mutating lilt endpoint uses.
 
 ## 10. Unpushed Commits (`@{u}..HEAD`)
 

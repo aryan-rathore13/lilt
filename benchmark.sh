@@ -417,7 +417,7 @@ bench_lsp() {
 
 bench_micro() {
   echo "### Running lilt Go Micro-Benchmarks..."
-  go test -bench=. -benchmem -run=^$ .
+  go test -bench=. -benchmem -run=^$ ./internal/app
 }
 
 bench_load() {
@@ -937,24 +937,24 @@ case "${1-}" in
   --json)    shift; EXPORT_JSON="${1:--}"; shift 2>/dev/null || true ;;
   --csv)     shift; EXPORT_CSV="${1:--}"; shift 2>/dev/null || true ;;
   --memory)  shift; [ $# -gt 0 ] || set -- "$CORPUS"/*/
-             [ -x "$BIN" ] || die "$BIN not found; run: go build -o lilt ."
+             [ -x "$BIN" ] || die "$BIN not found; run: go build -o lilt ./cmd/lilt"
              for t in "$@"; do bench_memory "${t%/}"; done; exit 0 ;;
   --lsp)     shift; [ $# -gt 0 ] || set -- .
-             [ -x "$BIN" ] || die "$BIN not found; run: go build -o lilt ."
+             [ -x "$BIN" ] || die "$BIN not found; run: go build -o lilt ./cmd/lilt"
              for t in "$@"; do bench_lsp "${t%/}"; done; exit 0 ;;
   --vscode)  shift; [ $# -gt 0 ] || set -- .
-             [ -x "$BIN" ] || die "$BIN not found; run: go build -o lilt ."
+             [ -x "$BIN" ] || die "$BIN not found; run: go build -o lilt ./cmd/lilt"
              bench_vscode "${1%/}"; exit 0 ;;
   --vscode-vanilla) shift; [ $# -gt 0 ] || set -- .
-             [ -x "$BIN" ] || die "$BIN not found; run: go build -o lilt ."
+             [ -x "$BIN" ] || die "$BIN not found; run: go build -o lilt ./cmd/lilt"
              bench_vscode_vanilla "${1%/}"; exit 0 ;;
   --editors) shift; [ $# -gt 0 ] || set -- .
-             [ -x "$BIN" ] || die "$BIN not found; run: go build -o lilt ."
+             [ -x "$BIN" ] || die "$BIN not found; run: go build -o lilt ./cmd/lilt"
              bench_editors "${1%/}"; exit 0 ;;
   -*)        die "unknown option: $1 (try --help)" ;;
 esac
 
-[ -x "$BIN" ] || die "$BIN not found; run: go build -o lilt ."
+[ -x "$BIN" ] || die "$BIN not found; run: go build -o lilt ./cmd/lilt"
 command -v curl >/dev/null || die "curl is required"
 
 targets=("$@")

@@ -8,7 +8,7 @@ POSTHOG_KEY="${POSTHOG_KEY:-${LILT_POSTHOG_KEY:-}}"
 
 LDFLAGS="-s -w"
 if [ -n "$POSTHOG_KEY" ]; then
-  LDFLAGS="$LDFLAGS -X main.posthogKey=$POSTHOG_KEY"
+  LDFLAGS="$LDFLAGS -X github.com/aryan-rathore13/lilt/internal/app.posthogKey=$POSTHOG_KEY"
 fi
 
 # Bundle frontend web assets
@@ -32,7 +32,7 @@ for t in $TARGETS; do
   name="lilt-$VERSION-$os-$arch$ext"
   printf '  %-28s' "$name"
   CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" \
-    go build -trimpath -ldflags="$LDFLAGS" -o "$OUT/$name" .
+    go build -trimpath -ldflags="$LDFLAGS" -o "$OUT/$name" ./cmd/lilt
   printf '%s\n' "$(du -h "$OUT/$name" | cut -f1)"
 done
 

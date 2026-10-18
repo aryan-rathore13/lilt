@@ -1,8 +1,11 @@
 .git
 dist/
 bench-repos/
-lilt
-lilt.exe
+/lilt
+/lilt.exe
+# Keep command sources when excluding the compiled executable.
+!cmd/lilt/
+!cmd/lilt/**
 *.test
 *.prof
 *.out

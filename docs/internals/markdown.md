@@ -2,7 +2,7 @@
 
 This document describes how lilt renders Markdown files: the server-side conversion, the browser-side sanitizer, and the logic that keeps the rendered view and the source view in step.
 
-A Markdown tab (`.md` or `.markdown`) opens rendered by default. The reader switches to the raw source with the Preview / Source switch in the tab bar, the Preview button in the status bar, or Alt+M. The code lives in two files: [`markdown.go`](../../markdown.go) on the server and [`web/src/markdown.js`](../../web/src/markdown.js) in the browser.
+A Markdown tab (`.md` or `.markdown`) opens rendered by default. The reader switches to the raw source with the Preview / Source switch in the tab bar, the Preview button in the status bar, or Alt+M. The code lives in two files: [`markdown.go`](../../internal/app/markdown.go) on the server and [`web/src/markdown.js`](../../web/src/markdown.js) in the browser.
 
 ## 1. Request Flow
 
@@ -28,7 +28,7 @@ The source view is not replaced. `#viewport` keeps loading and painting its rows
 
 ## 2. Opening a Markdown Tab
 
-`handleFile` in [`server.go`](../../server.go) adds `markdown: isMarkdown(rel)` to every `/api/file` response. `openFile` in [`web/src/tabs.js`](../../web/src/tabs.js) copies it onto the tab's doc object. Tab state then flows through one function:
+`handleFile` in [`server.go`](../../internal/app/server.go) adds `markdown: isMarkdown(rel)` to every `/api/file` response. `openFile` in [`web/src/tabs.js`](../../web/src/tabs.js) copies it onto the tab's doc object. Tab state then flows through one function:
 
 - `previewing(d)` returns true when the doc is Markdown, the global preference `S.mdPreview` is on, and the doc has no `mdError`.
 - `syncPreview()` compares the active doc against the doc currently shown. When they differ, it saves the outgoing doc's `mdScroll`, clears `#md`, toggles `#mdview`, and starts `drawPreview` for the incoming doc. `openFile`, `switchTab` and `closeTab` call it every time the active tab changes.
@@ -99,7 +99,7 @@ goldmark's default id generator drops every non-ASCII character and turns `_` in
 <pre class="md-code" data-line="8" data-lang="go"><code><i class=k>func</i> <i class=nf>main</i>...</code></pre>
 ```
 
-`highlightFence` looks up the fence's language with `lexers.Get` and calls `highlightLines`, the function the code view uses in [`highlight.go`](../../highlight.go). `Doc.tokenise` is now a thin wrapper around it. Both views therefore share lexers, the `classFor` token mapping, and the panic recovery that falls back to plain text. A theme colours both through the same CSS rules (`.c .k, .md-code .k`).
+`highlightFence` looks up the fence's language with `lexers.Get` and calls `highlightLines`, the function the code view uses in [`highlight.go`](../../internal/app/highlight.go). `Doc.tokenise` is now a thin wrapper around it. Both views therefore share lexers, the `classFor` token mapping, and the panic recovery that falls back to plain text. A theme colours both through the same CSS rules (`.c .k, .md-code .k`).
 
 Two cases stay plain and HTML-escaped:
 
@@ -263,7 +263,7 @@ Hover cards, Ctrl+click definitions and the selection bar listen on `#viewport`.
 
 ## 11. Tests
 
-[`markdown_test.go`](../../markdown_test.go) covers the server side:
+[`markdown_test.go`](../../internal/app/markdown_test.go) covers the server side:
 
 - `TestMarkdownPreview` checks heading ids and `data-line`, highlighted fenced code, preserved relative links, task list checkboxes, the `markdown` flag on `/api/file`, and the 415 and 400 responses.
 - `TestHeadingIDsFollowGitHub` checks the id rules and deduplication.
@@ -276,7 +276,7 @@ CSV and TSV tabs reuse this overlay. `/api/file` returns `"table": true` for `.c
 
 ### Endpoint
 
-`GET /api/table?path=<path>` ([`table.go`](../../table.go)) resolves the path like `/api/markdown`, answers 415 for other extensions, and parses with `encoding/csv` (`LazyQuotes`, `FieldsPerRecord = -1`). `Comma` comes from `sniffDelim`: it peeks at the first 64 KB, takes the first non-blank line, and counts comma, tab, semicolon and pipe outside double quotes. The most frequent wins, and the extension's separator (`.csv` → comma, `.tsv` → tab) wins ties and files with none. Misnamed files are common: a tab-separated `.csv` read with commas comes out as one cell per line. The first record is the header, with a leading UTF-8 BOM removed. It returns:
+`GET /api/table?path=<path>` ([`table.go`](../../internal/app/table.go)) resolves the path like `/api/markdown`, answers 415 for other extensions, and parses with `encoding/csv` (`LazyQuotes`, `FieldsPerRecord = -1`). `Comma` comes from `sniffDelim`: it peeks at the first 64 KB, takes the first non-blank line, and counts comma, tab, semicolon and pipe outside double quotes. The most frequent wins, and the extension's separator (`.csv` → comma, `.tsv` → tab) wins ties and files with none. Misnamed files are common: a tab-separated `.csv` read with commas comes out as one cell per line. The first record is the header, with a leading UTF-8 BOM removed. It returns:
 
 ```json
 { "header": ["repo", "files"], "headerLine": 1,
@@ -296,4 +296,4 @@ CSV and TSV tabs reuse this overlay. `/api/file` returns `"table": true` for `.c
 
 ### Tests
 
-[`table_test.go`](../../table_test.go) holds the parsing rules (quoted comma and newline, line skipping, ragged rows, TSV, BOM, blank lines, stray quotes, empty file, row cap, exactly-at-cap), separator detection and ties, the endpoint and `table` flag, and the byte cap: an endless reader proves no more than 1 MiB is read and that the record the cap cuts through is dropped. The browser behaviour was checked with a headless Playwright run in Chromium, WebKit and Firefox; there is no browser test in the repository.
+[`table_test.go`](../../internal/app/table_test.go) holds the parsing rules (quoted comma and newline, line skipping, ragged rows, TSV, BOM, blank lines, stray quotes, empty file, row cap, exactly-at-cap), separator detection and ties, the endpoint and `table` flag, and the byte cap: an endless reader proves no more than 1 MiB is read and that the record the cap cuts through is dropped. The browser behaviour was checked with a headless Playwright run in Chromium, WebKit and Firefox; there is no browser test in the repository.

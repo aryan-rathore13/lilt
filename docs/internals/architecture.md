@@ -14,6 +14,14 @@ lilt is engineered as an ultra-fast, zero-overhead code exploration console. Its
 
 The browser's file tabs are managed in `web/src/tabs.js`. Tab context-menu actions and the tab close button share cache cleanup. A bulk close updates the browser view and session once after removing the selected tabs.
 
+### Source layout and dependencies
+
+The executable starts in [`cmd/lilt/main.go`](../../cmd/lilt/main.go), which calls `app.Run()` in [`internal/app/cli.go`](../../internal/app/cli.go). The application package contains the HTTP server, workspace lifecycle, Git and language-server integration, agent dispatch, and their colocated tests. Existing focused helpers remain in `internal/fuzzy`, `internal/ignore`, `internal/metrics`, and `internal/table`.
+
+The root [`assets.go`](../../assets.go) is a resource-only package. It embeds `VERSION` and the selected browser assets and exposes `Version()` and `Assets()` to the application. It has no dependency on the command or application. This keeps Go's embed paths valid without copying resources or requiring them on disk at runtime.
+
+The dependency direction is `cmd/lilt` → `internal/app` → root resources and focused internal packages. The public landing page remains in `site/` and is built separately. From the repository root, bundle assets with `make web`, build with `make build`, and test with `make test`. For direct Go commands, use `go build -o lilt ./cmd/lilt` and `go test ./...`.
+
 ## 2. Startup Pipeline
 
 When `lilt` is executed in a terminal (e.g., `lilt .` or `lilt main.go:42`), the initialization flow executes as follows. A file target detects its enclosing project repository (or working directory) as the workspace and is passed to the browser with its relative path and optional line number.
@@ -47,7 +55,7 @@ sequenceDiagram
     Index-->>Srv: ReadyCh closed, full index available
 ```
 
-### Key Stages in [`main.go`](../../main.go)
+### Key Stages in [`cli.go`](../../internal/app/cli.go)
 
 1. Target Resolution: Directories become workspace roots. For a file target, its repository or project root is detected as the workspace, and its relative path (with optional line number) is retained for the initial browser tab.
 1. Socket Binding: `listen(*host, *port)` binds an ephemeral or user-specified TCP socket immediately.
@@ -62,7 +70,7 @@ The explorer expands folders through `/api/tree` on demand. Expand All skips ign
 
 ## 3. HTTP Server & API Catalog
 
-The server is implemented in [`server.go`](../../server.go) using Go's standard `http.ServeMux`. Every request passes through a centralized `ServeHTTP` wrapper that records activity timestamps, tracks status codes and durations, applies pooled Gzip compression when accepted by the client (excluding SSE streams), and logs every HTTP request to the terminal when the `-verbose` flag is active.
+The server is implemented in [`server.go`](../../internal/app/server.go) using Go's standard `http.ServeMux`. Every request passes through a centralized `ServeHTTP` wrapper that records activity timestamps, tracks status codes and durations, applies pooled Gzip compression when accepted by the client (excluding SSE streams), and logs every HTTP request to the terminal when the `-verbose` flag is active.
 
 ### Base Path & Subpath Prefixing
 When hosted behind reverse proxies or multi-tenant review platforms, lilt supports custom URL prefixes via the `-base-path` CLI flag or `server.basePath` in settings (e.g. `/rev-123/`):

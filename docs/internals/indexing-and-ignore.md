@@ -1,6 +1,6 @@
 # Filesystem Indexing & Ignore Engine
 
-This document explains the technical implementation of lilt's in-memory indexer ([`index.go`](../../index.go)) and custom `.gitignore` evaluation engine ([`ignore.go`](../../ignore.go)).
+This document explains the technical implementation of lilt's in-memory indexer ([`index.go`](../../internal/app/index.go)) and custom `.gitignore` evaluation engine ([`ignore.go`](../../internal/app/ignore.go)).
 
 ## 1. Directory Traversal Architecture
 
@@ -116,7 +116,7 @@ type Node struct {
 
 ## 3. High-Performance `.gitignore` Engine
 
-Evaluating regular expressions for hundreds of `.gitignore` patterns against tens of thousands of paths can cripple indexing performance. In [`ignore.go`](../../ignore.go), lilt classifies patterns into specialized non-regex fast paths and adds heuristic pre-filters to regexes.
+Evaluating regular expressions for hundreds of `.gitignore` patterns against tens of thousands of paths can cripple indexing performance. In [`ignore.go`](../../internal/app/ignore.go), lilt classifies patterns into specialized non-regex fast paths and adds heuristic pre-filters to regexes.
 
 ### Rule Classification (`ruleKind`)
 

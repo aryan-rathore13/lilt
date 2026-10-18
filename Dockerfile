@@ -13,7 +13,7 @@ RUN go mod download
 COPY . .
 # Copy generated bundles and any compressed vendor assets.
 COPY --from=web-builder /build/web/ ./web/
-RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /bin/lilt .
+RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /bin/lilt ./cmd/lilt
 
 # Stage 3: Minimal runtime container
 FROM alpine:3.21

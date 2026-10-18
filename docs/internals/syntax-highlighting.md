@@ -1,6 +1,6 @@
 # Windowed Syntax Highlighting Engine
 
-This document details the architecture and performance strategies of lilt's windowed syntax highlighting engine ([`highlight.go`](../../highlight.go)).
+This document details the architecture and performance strategies of lilt's windowed syntax highlighting engine ([`highlight.go`](../../internal/app/highlight.go)).
 
 ## 1. The Syntax Highlighting Bottleneck
 

@@ -16,8 +16,8 @@ To keep iteration fast and avoid unnecessary delays:
 | **Frontend Check** | `make web-check` or `npm run check` | **<100ms** | Validates JS syntax, relative imports, and runs frontend tests. |
 | **Frontend Bundle** | `make web` or `node scripts/build-web.js` | **<50ms** | Run whenever modifying files under `web/src/`. |
 | **Build Binary** | `make build` | **~2s** | Bundles frontend (`web/app.js`) and compiles local `./lilt` binary. |
-| **Fast Verification** | `make check` or `go test -short .` | **~7s** | Runs frontend validation, asset bundling, and fast Go unit tests. |
-| **Full Test Suite** | `make test` or `go test .` | **~20s** | Run once all changes are done; iterate until all tests pass before concluding. |
+| **Fast Verification** | `make check` or `go test -short ./...` | **~7s** | Runs frontend validation, asset bundling, and fast Go unit tests. |
+| **Full Test Suite** | `make test` or `go test ./...` | **~20s** | Run once all changes are done; iterate until all tests pass before concluding. |
 
 > [!TIP]
 > Isolated components in `internal/` can be tested in milliseconds without running the full test suite (e.g. `go test ./internal/table`, `go test ./internal/ignore`, `go test ./internal/fuzzy`, `go test ./internal/metrics` take ~5–10ms).
@@ -26,12 +26,14 @@ To keep iteration fast and avoid unnecessary delays:
 
 ## 2. Codebase Organization
 
-- **Backend Architecture**: Go source files live in the root package (`package main`), with decoupled subsystems extracted into `internal/` packages:
+- **CLI Entrypoint**: [`cmd/lilt/main.go`](cmd/lilt/main.go) calls `app.Run()`. Build with `go build -o lilt ./cmd/lilt`.
+- **Backend Architecture**: Runtime services and their tests live in [`internal/app/`](internal/app/) (`package app`), with decoupled subsystems in sibling `internal/` packages:
   - [`internal/table/`](internal/table/): Tabular formatting (CSV/TSV)
   - [`internal/ignore/`](internal/ignore/): `.gitignore` parsing, fnmatch globbing, and ignore trees
   - [`internal/fuzzy/`](internal/fuzzy/): Bounded two-pass fuzzy path finder and scoring algorithm
   - [`internal/metrics/`](internal/metrics/): System resource usage, RSS, CPU sampling, and OS-specific rusage
-  Root files provide backward-compatible facades and type aliases. Assets are statically embedded via `//go:embed`.
+  The application uses small facades and type aliases for these helpers.
+- **Embedded Resources**: [`assets.go`](assets.go) is the only root Go source file. It embeds the root `VERSION` and selected `web/` assets and exposes them to `internal/app`. Keep it free of runtime services; Go embed patterns cannot reach parent directories.
 - **Frontend Architecture**: Modular ES modules reside in [`web/src/`](web/src/) and are bundled into [`web/app.js`](web/app.js) via [`scripts/build-web.js`](scripts/build-web.js). Checked via [`scripts/check-web.js`](scripts/check-web.js).
 - **Landing Page**: Static assets live in `site/`; `node scripts/build-site.js` writes `site/dist/` and copies the root installer. Vercel serves this output using `vercel.json`; it does not run the workspace backend. See [deployment](docs/deployment.md).
 - **Benchmark Corpus**: Heavy repositories for benchmarking live in `../bench-repos` (outside the project root) to keep workspace searches and indexers fast.

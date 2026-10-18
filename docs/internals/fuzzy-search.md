@@ -1,6 +1,6 @@
 # Fuzzy Path Matching Engine
 
-This document describes the algorithms, scoring heuristics, and concurrency strategies behind lilt's ultra-fast fuzzy file finder ([`fuzzy.go`](../../fuzzy.go)).
+This document describes the algorithms, scoring heuristics, and concurrency strategies behind lilt's ultra-fast fuzzy file finder ([`fuzzy.go`](../../internal/app/fuzzy.go)).
 
 ## 1. The Fuzzy Matching Challenge
 

@@ -1,6 +1,6 @@
 # Workspace Search & Symbol Extraction
 
-This document explains lilt's high-throughput parallel search engine ([`search.go`](../../search.go)) and fast regex symbol extractor ([`symbols.go`](../../symbols.go)).
+This document explains lilt's high-throughput parallel search engine ([`search.go`](../../internal/app/search.go)) and fast regex symbol extractor ([`symbols.go`](../../internal/app/symbols.go)).
 
 ## 1. Search Engine Architecture
 
@@ -106,7 +106,7 @@ type Match struct {
 1. Zero Client Discrepancies: JavaScript uses UTF-16 code units, whereas Go uses UTF-8 byte sequences. Sending offsets requires complex client-side reconciliation. Sending pre-split strings completely eliminates boundary alignment bugs.
 1. Bandwidth Savings: Discarding massive leading and trailing line segments shrinks JSON payloads significantly.
 
-## 5. Regex Symbol Extraction ([`symbols.go`](../../symbols.go))
+## 5. Regex Symbol Extraction ([`symbols.go`](../../internal/app/symbols.go))
 
 When language servers are disabled or unavailable, lilt provides instantaneous symbol outlines and declaration jump navigation via heuristic regular expressions.
 

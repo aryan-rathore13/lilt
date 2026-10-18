@@ -1,6 +1,6 @@
 # Language Server Protocol (LSP) Architecture & Intelligence
 
-This document details the architecture, lifecycle management, and security boundaries of lilt's Language Server Protocol subsystem ([`lsp.go`](../../lsp.go), [`lspnav.go`](../../lspnav.go), [`lspservers.go`](../../lspservers.go), [`lspsetup.go`](../../lspsetup.go), and [`calls.go`](../../calls.go)).
+This document details the architecture, lifecycle management, and security boundaries of lilt's Language Server Protocol subsystem ([`lsp.go`](../../internal/app/lsp.go), [`lspnav.go`](../../internal/app/lspnav.go), [`lspservers.go`](../../internal/app/lspservers.go), [`lspsetup.go`](../../internal/app/lspsetup.go), and [`calls.go`](../../internal/app/calls.go)).
 
 ## 1. Zero-Cost Lazy Architecture
 
@@ -28,7 +28,7 @@ stateDiagram-v2
 
 ## 2. Server Registry & Extension Precedence
 
-Language server definitions reside in [`lspservers.go`](../../lspservers.go). Multiple language servers can be registered for a given extension, evaluated in order of precedence:
+Language server definitions reside in [`lspservers.go`](../../internal/app/lspservers.go). Multiple language servers can be registered for a given extension, evaluated in order of precedence:
 
 | Language          | Extensions                   | Primary Server               | Fallback Server | Discovery Search Paths     |
 | ----------------- | ---------------------------- | ---------------------------- | --------------- | -------------------------- |
@@ -91,7 +91,7 @@ sequenceDiagram
 - Target paths returned by the server are normalized and admitted into `extAllowed`.
 - External files can be opened and inspected, but cannot be enumerated, searched, listed in the sidebar explorer tree, or edited with an agent.
 
-## 5. Stateless Call Hierarchy Trails ([`calls.go`](../../calls.go))
+## 5. Stateless Call Hierarchy Trails ([`calls.go`](../../internal/app/calls.go))
 
 lilt provides full incoming and outgoing call hierarchy navigation (`Calls` tab in the right inspector) without holding complex graph state in server memory.
 
