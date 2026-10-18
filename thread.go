@@ -27,7 +27,7 @@ import (
 // it exits, a thread keeps its transcript on disk and continues the same
 // harness session on every new message.
 //
-// Continuity works two ways. A harness with a session id px0 can control
+// Continuity works two ways. A harness with a session id lilt can control
 // (claude, cursor-agent) resumes its own session, so the harness keeps its own
 // context. Every other harness, and any harness switched to mid-thread, is
 // replayed the earlier transcript inside the prompt.
@@ -158,7 +158,7 @@ func newThreadManager(a *agentManager, root string) *threadManager {
 	return tm
 }
 
-// load restores saved threads. A turn that was running when px0 exited can
+// load restores saved threads. A turn that was running when lilt exited can
 // never finish, so it is closed out as interrupted rather than left spinning.
 func (tm *threadManager) load() {
 	if tm.file == "" {
@@ -180,7 +180,7 @@ func (tm *threadManager) load() {
 			if tr.Running {
 				tr.Running = false
 				if tr.Error == "" {
-					tr.Error = "interrupted: px0 exited before this reply finished"
+					tr.Error = "interrupted: lilt exited before this reply finished"
 				}
 			}
 		}
@@ -353,7 +353,7 @@ func (tm *threadManager) SetScope(id, scope string) error {
 	return nil
 }
 
-// threadNative reports whether px0 can hand this harness its own session.
+// threadNative reports whether lilt can hand this harness its own session.
 func threadNative(name string) bool {
 	return name == "claude" || name == "cursor-agent" || name == "agy" || name == "gemini"
 }
@@ -809,7 +809,7 @@ type claudeEvent struct {
 }
 
 // parseClaudeEvent reads one line of `claude --output-format stream-json`.
-// Lines that are not events px0 cares about, or not JSON at all, yield nothing.
+// Lines that are not events lilt cares about, or not JSON at all, yield nothing.
 func parseClaudeEvent(line string) []claudeEvent {
 	line = strings.TrimSpace(line)
 	if !strings.HasPrefix(line, "{") {

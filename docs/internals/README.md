@@ -1,8 +1,8 @@
-# px0 Internal Architecture & Design Documentation
+# Lilt Internal Architecture & Design Documentation
 
-Welcome to the internal engineering documentation for px0, an ultra-lightweight, zero-config code reader and navigator that delegates edits to the user's coding agent, packaged as a single statically-linked binary (~3.5 MB).
+Lilt packages its Go backend and browser interface into a standalone binary. It preserves the upstream code-reading and review architecture while adding an independent identity, a light interface, and a separate static landing page.
 
-This directory contains in-depth technical write-ups explaining how px0 achieves sub-millisecond startup, instantaneous file navigation, deep code intelligence, and a minimal memory footprint (~20–30 MB RSS) across codebases containing tens of thousands of files.
+These guides explain the filesystem index, search and rendering pipelines, optional tool integrations, and persistent state. Historical upstream performance measurements are documented with attribution in [BENCHMARKS.md](../../BENCHMARKS.md); they are not new Lilt results.
 
 ## 1. Subsystem Architecture Map
 
@@ -16,7 +16,7 @@ flowchart TD
         Palette["Command Palette & Fuzzy Picker"]
     end
 
-    subgraph GoServer ["px0 Go Backend (HTTP / JSON / Gzip)"]
+    subgraph GoServer ["lilt Go Backend (HTTP / JSON / Gzip)"]
         Router["HTTP Router & Middleware"]
         Scavenger["Memory Scavenger (FreeOSMemory after 15s)"]
         IndexEngine["In-Memory Index (Paths & Tree Nodes)"]
@@ -57,7 +57,7 @@ The internal documentation is modularized into the following focused guides:
 
 ### Core Architecture & Server Runtime
 
-- [System Architecture & Runtime Lifecycle](architecture.md): High-level architectural tenets, single-binary distribution, sub-millisecond startup sequence, HTTP router and endpoints, proactive memory scavenging (`debug.FreeOSMemory()`), and path sandboxing.
+- [System Architecture & Runtime Lifecycle](architecture.md): High-level architectural tenets, single-binary distribution, startup sequence, HTTP router and endpoints, proactive memory scavenging (`debug.FreeOSMemory()`), and path sandboxing.
 - [Filesystem Indexing & Ignore Engine](indexing-and-ignore.md): Bounded-concurrency directory traversal (`NumCPU * 4`), instant root availability, symlink cycle immunity, and the custom classification-based `.gitignore` engine.
 - [Performance & Comparative Benchmarks](../../BENCHMARKS.md): Measurement methodology across the 7-repository test corpus (Flask to the Linux Kernel) and side-by-side memory/CPU comparison against the VS Code process tree.
 
@@ -69,7 +69,7 @@ The internal documentation is modularized into the following focused guides:
 - [Language Server Protocol (LSP) Architecture](lsp-and-intelligence.md): Lazy on-demand server lifecycle, zero-cost background binary discovery, external path boundary control, stateless call hierarchy trails, in-app installer recipes, and regex fallback.
 - [Git Awareness, Diffing & Stage/Commit/Push/Pull](git-integration.md): CLI shell-out architecture; status/diffing stay read-only, while the sidebar git panel's stage, commit, fast-forward-only pull, and push are explicit, click-triggered writes. Concurrent status generation with indexing, ancestor folder dirty propagation, gutter diff parsing, the client-side split/unified diff renderer, and AI-written commit messages via a file-free harness dispatch.
 - [GitHub PR Review](github-pr-review.md): Extensible `GitProvider` interface and URL matching, zero-dependency REST client and multi-source auth resolution (`settings.json`, `GITHUB_TOKEN`, `GH_TOKEN`, `gh auth token`), animated CLI spinner, interactive merged-PR confirmation, temp-dir worktree checkout scoped to process lifetime, merge-base diffing instead of `HEAD`, fail-closed push-access gating, in-memory draft comment model, AI agent batch-apply integration, and pushing/fast-forward-pulling directly against the PR's own head branch.
-- [Review Workbench](workbench.md): What a bare `px0` serves. One child px0 per workspace behind a single-port reverse proxy, PRs as worktrees of one discovered or px0-made clone per repository, stdin-tied child lifetimes, idle stop, the holding page that restarts stopped workspaces, stable item IDs, the re-read-on-write `workbench.json` store, the single-instance lock, and the filesystem-browsing security model.
+- [Review Workbench](workbench.md): What a bare `lilt` serves. One child lilt per workspace behind a single-port reverse proxy, PRs as worktrees of one discovered or lilt-made clone per repository, stdin-tied child lifetimes, idle stop, the holding page that restarts stopped workspaces, stable item IDs, the re-read-on-write `workbench.json` store, the single-instance lock, and the filesystem-browsing security model.
 - [Harness Editing & Agent Dispatch](agent-editing.md): The optional agent flow. Starting an edit from the selection bar, right-click menu or diff view, headless invocation contract for Claude Code / Gemini CLI / Cursor Agent, inline failure output, running several edits at once with an overlap guard and an uncommitted-work guard, change detection, the cache/language-server/tab reload path, and the file-free prompt dispatch (`StartPrompt`) behind the git panel's AI commit messages.
 - [Threads](threads.md): Long-running multi-turn conversations with a harness. Native session resume for `claude` and `cursor-agent` with transcript replay for the rest, the stream-json event parser, the SSE feed and its drop-slow-subscriber rule, the on-disk store beside `settings.json`, and why there is no overlap guard.
 
@@ -84,6 +84,6 @@ The internal documentation is modularized into the following focused guides:
 
 ### Operations & Maintenance
 
-- [User Features Documentation](../features/README.md): High-level feature guides, practical workflows, and keyboard shortcuts for all px0 capabilities.
+- [User Features Documentation](../features/README.md): High-level feature guides, practical workflows, and keyboard shortcuts for all lilt capabilities.
 - [AI Agent Operational Guidelines](../agents/README.md): Engineering principles for AI coding agents, mandatory documentation maintenance protocol, and frontend codebase index.
-- [Publishing & Release Guide](../../PUBLISHING.md): Step-by-step instructions for preparing, testing, and publishing new px0 releases.
+- [Publishing & Release Guide](../../PUBLISHING.md): Step-by-step instructions for preparing, testing, and publishing new lilt releases.

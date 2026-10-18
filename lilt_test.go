@@ -50,7 +50,7 @@ func TestIgnorePatterns(t *testing.T) {
 func TestFuzzyRanking(t *testing.T) {
 	paths := []string{
 		"internal/server/http_server.go",
-		"cmd/px0/main.go",
+		"cmd/lilt/main.go",
 		"web/app.js",
 		"pkg/util/strings.go",
 		"vendor/github.com/x/http/server.go",
@@ -1475,8 +1475,3 @@ func TestFSNew(t *testing.T) {
 		t.Fatalf("expected 400 for path traversal, got %d", rec.Code)
 	}
 }
-
-
-
-
-

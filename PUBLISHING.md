@@ -1,90 +1,63 @@
-# Publishing & Release Guide
+# Publishing Lilt
 
-This document outlines the step-by-step instructions for preparing, testing, and publishing a new release of `px0`.
+The first independent Lilt release is planned as **v0.1.0**. A public repository and binary release must exist before the installer can succeed. Follow [the deployment guide](docs/deployment.md) to authenticate the required GitHub account and publish the Vercel landing page.
 
-## 1. Prerequisites
+## Before a release
 
-Before cutting a new release, ensure you have:
+- Use the personal GitHub account **`aryan-rathore13`**, with permission to publish `aryan-rathore13/lilt`.
+- Install Go 1.25+ and Node.js or Bun. GitHub Actions reads the Go version from `go.mod`.
+- Keep the working tree clean, review the changes, and choose a version that has not been released. Do not move or overwrite existing release tags.
+- Keep [LICENSE](LICENSE) unchanged and preserve attribution to px0 and Arpit Bhayani.
 
-- Git with push and tag permissions for `px0-ai/px0`.
-- Go (version 1.24+).
-- Node.js (v18+ or v20+) or Bun for bundling frontend assets.
-- A clean working tree with all tests passing.
-
-## 2. Pre-Release Verification
-
-Run the test suite and verify asset bundling:
+Verify the interface, binary, and landing build after completing changes:
 
 ```bash
-# 1. Run unit and integration tests
+node scripts/check-web.js
 make test
-
-# 2. Build local binary and verify sanity
 make build
-./px0 --version
+./lilt --version
+node scripts/build-site.js
 ```
 
-## 3. Release Methods
-### Method 1: Automated Release via Makefile (Recommended)
+Cross-platform builds can also be checked with `./build.sh`, which writes 15 OS/architecture binaries and `checksums.txt` into `dist/`.
 
-The project includes an automated `make publish` target in the [Makefile](Makefile) that:
+## Publish a version
 
-1. Updates the [VERSION](VERSION) file.
-1. Bundles web assets and cross-compiles binaries into `dist/`.
-1. Commits `VERSION`.
-1. Creates an annotated Git tag `v<version>`.
-
-#### Step 1: Run publish command
-
-Specify the version without a leading `v`:
+Update `VERSION` to the intended version, commit it with the release changes, and create an unused annotated tag. For the first release:
 
 ```bash
-make publish 0.2.0
-```
-
-#### Step 2: Push commit and tags to GitHub
-
-```bash
-git push origin master --tags
-```
-
-### Method 2: Manual Release via Git
-
-```bash
-# 1. Update VERSION file
-echo "0.2.0" > VERSION
-
-# 2. Bundle frontend assets and compile release binaries
-make dist
-
-# 3. Commit version bump
+printf '0.1.0\n' > VERSION
 git add VERSION
-git commit -m "Release v0.2.0"
-
-# 4. Tag the release
-git tag -fa v0.2.0 -m "Release v0.2.0"
-
-# 5. Push to GitHub
-git push origin master
-git push origin v0.2.0
+git commit -m "Release v0.1.0"
+git tag -a v0.1.0 -m "Release v0.1.0"
+git push origin main
+git push origin v0.1.0
 ```
 
-### Method 3: GitHub Actions Workflow Dispatch
+If the release version is already committed, omit the version-file commit. Use your configured personal Git identity; do not add assistant co-author trailers.
 
-1. Navigate to Actions -> Release on GitHub: `https://github.com/px0-ai/px0/actions/workflows/release.yml`
-1. Click Run workflow.
-1. Enter the version tag (e.g. `v0.2.0`).
-1. Trigger the workflow.
+The [`Release` workflow](.github/workflows/release.yml) runs on `v*` tags. It bundles frontend assets, cross-compiles with CGO disabled, generates SHA-256 checksums, and publishes release assets with the repository's `GITHUB_TOKEN`. It does not need a separate hosting service or a personal access token secret. Optional telemetry is enabled only when a Lilt-specific key is configured.
 
-## 4. Post-Release Verification
+You can also run the workflow manually from [Actions](https://github.com/aryan-rathore13/lilt/actions/workflows/release.yml), selecting the intended ref and specifying its version. Prefer tagging a reviewed commit so the release version and source are unambiguous.
 
-1. Verify GitHub Actions workflow completion on the Actions tab.
-1. Confirm artifacts on the [Releases](https://github.com/px0-ai/px0/releases) page (cross-platform binaries and `checksums.txt`). The self-updater requires this file and verifies the selected binary against it before execution.
-1. Verify the installer script:
-  ```bash
-  curl -fsSL https://px0.ai/install.sh | sh
-  ```
-1. Verify self-update functionality:
-  ```bash
-  px0 --update
-  ```
+## Verify the published release
+
+```bash
+gh run list --repo aryan-rathore13/lilt --workflow release.yml --limit 5
+gh release view v0.1.0 --repo aryan-rathore13/lilt
+```
+
+Confirm the workflow succeeded, the release is published, and all **15 binaries plus `checksums.txt`** are present. Asset names follow `lilt-0.1.0-<os>-<arch>` with `.exe` on Windows. Both the installer and self-updater verify the downloaded binary using the checksum file.
+
+Test the installer in a temporary installation directory and verify the version before advertising it:
+
+```bash
+lilt_install_check="$(mktemp -d)"
+curl -fsSL https://raw.githubusercontent.com/aryan-rathore13/lilt/main/install.sh -o "$lilt_install_check/install.sh"
+PATH="$lilt_install_check/bin:$PATH" VERSION=0.1.0 INSTALL_DIR="$lilt_install_check/bin" sh "$lilt_install_check/install.sh"
+"$lilt_install_check/bin/lilt" --version
+```
+
+Including the temporary directory in `PATH` prevents the installer from adding it to your shell profile. Use an isolated environment to test upgrades or different platforms.
+
+After the published release passes verification, set **`LILT_RELEASE_READY=1`** in the Vercel Production build environment and redeploy. This changes the landing page's first-release notice. Do not enable it while the release is missing or still building. See [deployment](docs/deployment.md) for the exact commands.

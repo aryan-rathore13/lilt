@@ -15,7 +15,7 @@ endif
 # Clean leading 'v' from version string if present
 CLEAN_VERSION := $(patsubst v%,%,$(TARGET_VERSION))
 
-POSTHOG_KEY ?= $(PX0_POSTHOG_KEY)
+POSTHOG_KEY ?= $(LILT_POSTHOG_KEY)
 LDFLAGS := -s -w
 ifneq ($(strip $(POSTHOG_KEY)),)
   LDFLAGS += -X main.posthogKey=$(strip $(POSTHOG_KEY))
@@ -24,8 +24,8 @@ endif
 all: build
 
 help:
-	@echo "px0 make targets:"
-	@echo "  make build             - build px0 binary for current platform (optional: POSTHOG_KEY=phc_...)"
+	@echo "lilt make targets:"
+	@echo "  make build             - build lilt binary for current platform (optional: POSTHOG_KEY=phc_...)"
 	@echo "  make web               - bundle web assets (JS/CSS/themes)"
 	@echo "  make test              - run go test suite"
 	@echo "  make test-short        - run fast unit tests (short mode)"
@@ -39,12 +39,12 @@ web:
 	@node ./scripts/build-web.js
 
 build: web
-	@echo "Building px0 for local system..."
-	go build -trimpath -ldflags="$(LDFLAGS)" -o px0 .
-	@echo "Built ./px0 ($$(du -h px0 | cut -f1))"
+	@echo "Building lilt for local system..."
+	go build -trimpath -ldflags="$(LDFLAGS)" -o lilt .
+	@echo "Built ./lilt ($$(du -h lilt | cut -f1))"
 
 test: web
-	go test -v .
+	go test -v ./...
 
 web-check:
 	@node ./scripts/check-web.js
@@ -78,9 +78,9 @@ publish:
 	@echo "Tag v$(CLEAN_VERSION) has been created."
 	@echo ""
 	@echo "To publish to GitHub and trigger release workflow, run:"
-	@echo "  git push origin master --tags"
+	@echo "  git push origin main --tags"
 
 clean:
-	rm -f px0 web/app.js web/workbench.js
+	rm -f lilt web/app.js web/workbench.js
 	touch web/app.js web/workbench.js
 	rm -rf dist/

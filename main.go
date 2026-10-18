@@ -1,4 +1,4 @@
-// Package main implements px0: a fast, local-first code navigator and review tool
+// Package main implements lilt: a fast, local-first code navigator and review tool
 // that opens any repository or pull request in a responsive browser UI.
 package main
 
@@ -37,8 +37,8 @@ func main() {
 		noGit        = flag.Bool("no-git", false, "disable git awareness")
 		showVer      = flag.Bool("version", false, "print version and exit")
 		showVerShort = flag.Bool("v", false, "print version and exit (shorthand)")
-		doUpdate     = flag.Bool("update", false, "check for and install latest version of px0")
-		noUpdate     = flag.Bool("no-update", false, "do not auto-update px0 on startup")
+		doUpdate     = flag.Bool("update", false, "check for and install latest version of lilt")
+		noUpdate     = flag.Bool("no-update", false, "do not auto-update lilt on startup")
 		noColor      = flag.Bool("no-color", false, "disable colour output")
 		quiet        = flag.Bool("quiet", false, "suppress narration")
 		verbose      = flag.Bool("verbose", false, "log startup steps, requests, searches, symbols, and agent prompts to terminal")
@@ -48,10 +48,10 @@ func main() {
 		_            = flag.Bool("y", false, "answer yes to prompts (deprecated; PRs are always opened without prompt)")
 		_            = flag.Bool("yes", false, "answer yes to prompts (alias for -y)")
 		basePathFlag = flag.String("base-path", "", "base URL path prefix to serve endpoints and assets from (e.g. /rev-123/)")
-		wbChild      = flag.Bool("workbench-child", false, "internal: run as a workspace of the px0 workbench")
+		wbChild      = flag.Bool("workbench-child", false, "internal: run as a workspace of the lilt workbench")
 	)
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "px0 %s - a code navigator\n\nusage:\n  px0 [flags]                      open the workbench\n  px0 [flags] <file or directory>\n  px0 [flags] <pr-url>\n\nflags:\n", version)
+		fmt.Fprintf(os.Stderr, "lilt %s - a code navigator\n\nusage:\n  lilt [flags]                      open the workbench\n  lilt [flags] <file or directory>\n  lilt [flags] <pr-url>\n\nflags:\n", version)
 		flag.PrintDefaults()
 	}
 	flag.Parse()
@@ -71,7 +71,7 @@ func main() {
 	}
 
 	if *showVer || *showVerShort || (flag.NArg() == 1 && flag.Arg(0) == "version") {
-		fmt.Printf("px0 %s (%s/%s)\n", version, runtime.GOOS, runtime.GOARCH)
+		fmt.Printf("lilt %s (%s/%s)\n", version, runtime.GOOS, runtime.GOARCH)
 		return
 	}
 
@@ -82,8 +82,8 @@ func main() {
 		return
 	}
 
-	// Without a target, px0 opens the workbench: a launcher for directories
-	// and pull requests that runs each one as a child px0 (workbench.go).
+	// Without a target, lilt opens the workbench: a launcher for directories
+	// and pull requests that runs each one as a child lilt (workbench.go).
 	if flag.NArg() == 0 && !*wbChild {
 		var childArgs []string
 		for _, f := range []struct {
@@ -103,7 +103,7 @@ func main() {
 
 	// A full pull request URL (e.g. https://github.com/owner/repo/pull/123)
 	// checks out the PR's full source tree instead of resolving a local file/directory.
-	// Only full URLs via "px0 <url>" are supported for PR review.
+	// Only full URLs via "lilt <url>" are supported for PR review.
 	target := "."
 	var prProvider GitProvider
 	var prTarget PRTarget
@@ -111,7 +111,7 @@ func main() {
 	if flag.NArg() > 0 {
 		arg0 := flag.Arg(0)
 		if arg0 == "pr" {
-			fatal(fmt.Errorf("'px0 pr' is no longer supported; open pull requests directly with: px0 <url>"))
+			fatal(fmt.Errorf("'lilt pr' is no longer supported; open pull requests directly with: lilt <url>"))
 		}
 		if provider, pt, ok := DetectPRURL(arg0); ok {
 			prProvider, prTarget, isPR = provider, pt, true
@@ -120,7 +120,7 @@ func main() {
 		}
 	}
 	if isPR && gitDisabled {
-		fatal(fmt.Errorf("px0: git is required for PR review; remove -no-git"))
+		fatal(fmt.Errorf("lilt: git is required for PR review; remove -no-git"))
 	}
 
 	var pr *prSession
@@ -145,7 +145,7 @@ func main() {
 		cancel()
 		if err != nil {
 			sp.Fail(fmt.Sprintf("Failed to prepare PR #%d: %v", prTarget.Number, err))
-			fatal(fmt.Errorf("px0: %w", err))
+			fatal(fmt.Errorf("lilt: %w", err))
 		}
 		if p.meta.Merged {
 			sp.Success(fmt.Sprintf("PR #%d checked out [merged] (%s)", prTarget.Number, p.meta.Title))
@@ -184,10 +184,10 @@ func main() {
 		configuredBasePath = cleanBasePath(*cfg.ServerBasePath)
 	}
 
-	pxSrv := NewServer(ix, lsp, configuredBasePath)
-	pxSrv.tel = tel
+	liltSrv := NewServer(ix, lsp, configuredBasePath)
+	liltSrv.tel = tel
 	if *wbChild {
-		pxSrv.workbenchURL = workbenchBaseOf(configuredBasePath)
+		liltSrv.workbenchURL = workbenchBaseOf(configuredBasePath)
 	} else if pr != nil {
 		it := wbPRItem(prTarget)
 		it.Title = pr.meta.Title
@@ -196,7 +196,7 @@ func main() {
 		go recordRecent(wbDirItem(root))
 	}
 	if pr != nil {
-		pxSrv.SetPR(pr)
+		liltSrv.SetPR(pr)
 	}
 	var agent *agentManager
 	if !*noAgent {
@@ -204,18 +204,18 @@ func main() {
 		if err != nil {
 			fatal(fmt.Errorf("-agent: %w", err))
 		}
-		pxSrv.SetAgent(agent)
+		liltSrv.SetAgent(agent)
 	}
 	initDur := time.Since(tInit)
 
-	srv := &http.Server{Handler: pxSrv}
+	srv := &http.Server{Handler: liltSrv}
 	if *wbChild {
 		// The workbench reads this line for the address it proxies to.
 		fmt.Printf("%s%s\n", wbReadyPrefix, addr)
 	}
 
 	url := viewerURL(addr, initialFile, initialLine, configuredBasePath)
-	uiHeading("px0 "+version, nil, os.Stdout)
+	uiHeading("lilt "+version, nil, os.Stdout)
 	if pr != nil {
 		prTitle := fmt.Sprintf("#%d %s", pr.meta.Number, pr.meta.Title)
 		if pr.meta.Merged {
@@ -300,7 +300,7 @@ func main() {
 	}()
 
 	// Check for updates in the background once the server is already up, so
-	// px0 never makes a network call before serving the first request.
+	// lilt never makes a network call before serving the first request.
 	if !*noUpdate {
 		go autoUpdate(version)
 	}
@@ -322,7 +322,7 @@ func main() {
 		<-stop
 		interrupted = true
 		fmt.Print("\r")
-		uiStatus("info", "px0 stopped", "", 0, os.Stderr)
+		uiStatus("info", "lilt stopped", "", 0, os.Stderr)
 		go func() {
 			<-stop // Second interrupt forces immediate exit
 			os.Exit(130)
@@ -335,7 +335,7 @@ func main() {
 	err = srv.Serve(ln)
 	lsp.Close()
 	agent.Close()
-	pxSrv.CloseThreads()
+	liltSrv.CloseThreads()
 	pr.Close()
 
 	if interrupted {
@@ -389,7 +389,7 @@ func runWorkbench(host string, port int, basePathFlag string, open, update bool,
 	writeWorkbenchLock(viewerURL(net.JoinHostPort("127.0.0.1", boundPort), "", 0, basePath))
 	defer removeWorkbenchLock()
 
-	uiHeading("px0 "+version, nil, os.Stdout)
+	uiHeading("lilt "+version, nil, os.Stdout)
 	uiKV("workbench", uiAccent(u, os.Stdout), 11, os.Stdout)
 	if host == "0.0.0.0" {
 		for _, networkURL := range networkURLs(addr, "", 0) {
@@ -414,7 +414,7 @@ func runWorkbench(host string, port int, basePathFlag string, open, update bool,
 		<-stop
 		interrupted = true
 		fmt.Print("\r")
-		uiStatus("info", "px0 stopped", "", 0, os.Stderr)
+		uiStatus("info", "lilt stopped", "", 0, os.Stderr)
 		go func() {
 			<-stop
 			os.Exit(130)
@@ -687,6 +687,6 @@ func isWSL() bool {
 }
 
 func fatal(err error) {
-	fmt.Fprintln(os.Stderr, "px0:", err)
+	fmt.Fprintln(os.Stderr, "lilt:", err)
 	os.Exit(1)
 }

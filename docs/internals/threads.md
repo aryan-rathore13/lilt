@@ -14,7 +14,7 @@ Threads are the conversational sibling of [inline edits](agent-editing.md). They
 sequenceDiagram
     autonumber
     participant UI as Browser (thread.js)
-    participant S as px0 (thread.go)
+    participant S as lilt (thread.go)
     participant H as Harness
     participant G as git
 
@@ -41,7 +41,7 @@ A turn is a fresh process, so continuity is carried one of two ways:
 
 | Mode | Harnesses | How |
 | --- | --- | --- |
-| Native session | `claude`, `cursor-agent`, `agy`, `gemini` | px0 owns or tracks the session id. `claude`: `--session-id <uuid>` on the first turn, `--resume <uuid>` after. `agy`: captures `conversation_id` on first turn, then `--conversation <id>` every turn. `gemini`: `--session-id <uuid>` on first turn, `--resume <uuid>` after. `cursor-agent`: `create-chat` returns an id, then `--resume <id>` every turn. The harness keeps its own context, so a later turn sends only the new message. |
+| Native session | `claude`, `cursor-agent`, `agy`, `gemini` | lilt owns or tracks the session id. `claude`: `--session-id <uuid>` on the first turn, `--resume <uuid>` after. `agy`: captures `conversation_id` on first turn, then `--conversation <id>` every turn. `gemini`: `--session-id <uuid>` on first turn, `--resume <uuid>` after. `cursor-agent`: `create-chat` returns an id, then `--resume <id>` every turn. The harness keeps its own context, so a later turn sends only the new message. |
 | Replay | every other harness | Each turn's prompt carries the earlier turns as `User:` / `Assistant:` text, plus the files each turn changed, capped at `threadReplayMax` bytes (most recent kept). |
 
 `threadArgv` injects the session flags right after the binary (flag order does not matter to these CLIs), so the preset argv, including the model flag and permission mode, is unchanged. Only harnesses whose flags were verified are in the native list; adding one is a case in `threadArgv` and `threadNative`.
@@ -77,9 +77,9 @@ The feed is Server-Sent Events at `/api/threads/stream`:
 
 ## 4. Persistence
 
-Threads are stored per workspace at `<config dir>/threads/<sha256(root)[:8]>.json`, beside `settings.json` (`$XDG_CONFIG_HOME/px0/` or `~/.px0/`), never inside the working tree. The file is written atomically (temp file, then rename) with mode `0600`, since it holds code snippets and replies.
+Threads are stored per workspace at `<config dir>/threads/<sha256(root)[:8]>.json`, beside `settings.json` (`$XDG_CONFIG_HOME/lilt/` or `~/.lilt/`), never inside the working tree. The file is written atomically (temp file, then rename) with mode `0600`, since it holds code snippets and replies.
 
-It is saved when a turn starts, when it ends, on delete, and at most every two seconds while a reply is streaming, so an exit mid-turn loses seconds rather than the answer. On load, any turn still marked running is closed as interrupted, since its process died with px0.
+It is saved when a turn starts, when it ends, on delete, and at most every two seconds while a reply is streaming, so an exit mid-turn loses seconds rather than the answer. On load, any turn still marked running is closed as interrupted, since its process died with lilt.
 
 ## 5. Concurrency
 
@@ -111,7 +111,7 @@ The first-turn prompt for these kinds asks for the change to be made and a one o
 | `/api/threads/delete` | POST | Delete `?id=`, stopping its turn first. |
 | `/api/threads/stream` | GET | SSE feed (section 3). |
 
-Every mutating endpoint is guarded by `localPost`, and carries the same security posture as inline edits: it runs a general-purpose coding agent with shell access as the user who started px0.
+Every mutating endpoint is guarded by `localPost`, and carries the same security posture as inline edits: it runs a general-purpose coding agent with shell access as the user who started lilt.
 
 ## 8. Frontend
 

@@ -1126,6 +1126,10 @@ func TestPRReviewerChangesInIndex(t *testing.T) {
 		t.Skip("git not installed")
 	}
 	root := t.TempDir()
+	// Match the canonical workspace roots used by main (macOS /var is a symlink).
+	if resolved, err := filepath.EvalSymlinks(root); err == nil {
+		root = resolved
+	}
 	gitTestRun(t, root, "init", "-b", "main")
 	gitTestRun(t, root, "config", "user.name", "test")
 	gitTestRun(t, root, "config", "user.email", "test@example.com")
@@ -1219,6 +1223,10 @@ func TestGitStagedFilesStatAndDiff(t *testing.T) {
 		t.Skip("git not installed")
 	}
 	dir := t.TempDir()
+	// Match the canonical workspace roots used by main (macOS /var is a symlink).
+	if resolved, err := filepath.EvalSymlinks(dir); err == nil {
+		dir = resolved
+	}
 	gitTestRun(t, dir, "init", "-b", "main")
 	for _, cfg := range [][2]string{{"user.email", "t@example.com"}, {"user.name", "T"}, {"commit.gpgsign", "false"}} {
 		gitTestRun(t, dir, "config", cfg[0], cfg[1])
@@ -1309,6 +1317,10 @@ func TestDeletedFileHandling(t *testing.T) {
 		t.Skip("git not installed")
 	}
 	dir := t.TempDir()
+	// Match the canonical workspace roots used by main (macOS /var is a symlink).
+	if resolved, err := filepath.EvalSymlinks(dir); err == nil {
+		dir = resolved
+	}
 	gitTestRun(t, dir, "init", "-b", "main")
 	for _, cfg := range [][2]string{{"user.email", "t@example.com"}, {"user.name", "T"}, {"commit.gpgsign", "false"}} {
 		gitTestRun(t, dir, "config", cfg[0], cfg[1])

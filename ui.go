@@ -282,4 +282,3 @@ func (s *uiSpinner) Fail(msg string) {
 	}
 	uiStatus("err", msg, "", 0, s.w)
 }
-

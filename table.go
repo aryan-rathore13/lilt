@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 
-	itbl "px0/internal/table"
+	itbl "github.com/aryan-rathore13/lilt/internal/table"
 )
 
 const (

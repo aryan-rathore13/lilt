@@ -1,10 +1,10 @@
 package main
 
 import (
-	"px0/internal/metrics"
+	"github.com/aryan-rathore13/lilt/internal/metrics"
 )
 
-// ProcessMetrics captures system resource usage of the px0 server process
+// ProcessMetrics captures system resource usage of the lilt server process
 // and any child language server processes. Re-exported from internal/metrics.
 type ProcessMetrics = metrics.ProcessMetrics
 
@@ -16,7 +16,7 @@ var (
 	globalMetrics      = metrics.DefaultCollector
 )
 
-// getProcessMetrics samples px0's own process stats, plus the combined
+// getProcessMetrics samples lilt's own process stats, plus the combined
 // memory of any running language server processes when lsp is non-nil and
 // enabled (-no-lsp turns it off, but the manager itself is never nil).
 func getProcessMetrics(lsp *lspManager) ProcessMetrics {

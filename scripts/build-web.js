@@ -18,7 +18,7 @@ const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
 const srcDir = path.join(rootDir, 'web', 'src');
 // Each entry is bundled on its own: the app, and the workbench page that a
-// bare `px0` serves (workbench.go), which shares only a few small modules.
+// bare `lilt` serves (workbench.go), which shares only a few small modules.
 const bundles = [
   { entry: path.join(srcDir, 'main.js'), out: path.join(rootDir, 'web', 'app.js') },
   { entry: path.join(srcDir, 'workbench.js'), out: path.join(rootDir, 'web', 'workbench.js') },

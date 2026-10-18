@@ -1,12 +1,14 @@
 {
-  "name": "px0",
-  "version": "0.1.16",
+  "name": "lilt",
+  "version": "0.1.0",
   "type": "module",
   "private": true,
   "description": "High-performance code reader and review engine",
   "scripts": {
     "build": "node ./scripts/build-web.js",
     "check": "node ./scripts/check-web.js",
-    "test": "bun test web/src/"
+    "test": "bun test web/src/",
+    "build:site": "node ./scripts/build-site.js",
+    "dev:site": "node ./scripts/serve-site.js"
   }
 }

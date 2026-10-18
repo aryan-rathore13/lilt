@@ -1,35 +1,27 @@
-# Contributing to px0
+# Contributing to Lilt
 
-Thank you for your interest in improving px0.
+Lilt is an independent adaptation of [px0](https://github.com/px0-ai/px0). Changes should keep the application easy to install, responsive, and useful for reading and reviewing code.
 
-## AI-Driven Development and Contributions
+## Report a problem or propose an improvement
 
-px0 is built and maintained entirely using AI coding agents.
+Check [existing issues](https://github.com/aryan-rathore13/lilt/issues) before opening a report. Include the operating system, browser, Lilt version, a small reproduction, and expected and actual behavior. Remove credentials and private source code from logs and screenshots.
 
-Because all implementation, architecture refactoring, and code changes are written by AI agents guided by our core design principles (zero config, zero runtime dependencies, lean memory footprint, single binary, reads-first focus with edits delegated to coding agents), we generally do not accept unsolicited pull requests containing manual or disparate code patches.
+For feature requests, describe the user problem and a concrete example of the desired workflow. The [feature request template](.github/ISSUE_TEMPLATE/feature_request.md) and [bug template](.github/ISSUE_TEMPLATE/bug_report.md) provide a starting point.
 
-Instead, the most valuable contribution you can provide is a clear, detailed bug report or a well-reasoned feature idea.
+## Develop a change
 
-## How to Contribute
-### Report a Bug
+Read [AGENT.md](AGENT.md) and the [architecture documentation](docs/internals/README.md). Build with Go 1.25+ and Node.js or Bun; the resulting application must remain a standalone binary without a database or Node.js runtime requirement.
 
-If you encounter unexpected behavior, memory leaks, navigation bugs, or performance issues:
+Keep changes focused. Preserve existing workspace behavior, respect timeouts for background commands, and keep user preferences outside workspace repositories. External coding harnesses and language servers remain optional.
 
-- Check existing [GitHub Issues](https://github.com/px0-ai/px0/issues) first to avoid duplicates.
-- Open a new issue using our [Bug Report Template](.github/ISSUE_TEMPLATE/bug_report.md).
-- Provide comprehensive context: operating system, browser, workspace size, steps to reproduce, expected vs. observed behavior, logs, and screenshots if applicable.
+When the implementation is complete, run the checks relevant to the change:
 
-### Suggest a Feature or Improvement
+```bash
+node scripts/check-web.js
+make test
+make build
+```
 
-Have an idea to make reading and navigating code faster or smoother?
+For landing-page changes, also run `node scripts/build-site.js` and inspect the page at desktop and mobile sizes, including reduced-motion behavior. Update feature or architecture documentation when behavior changes. Identify the checks performed and any remaining limitations in the pull request.
 
-- Open a new issue using our [Feature Request Template](.github/ISSUE_TEMPLATE/feature_request.md).
-- Explain the motivation: what problem does this solve, why would it benefit users, and how would it fit px0's reads-first, minimal-footprint philosophy?
-
-## Review and Implementation Process
-
-1. Review: Maintainers evaluate every issue against px0's design philosophy (simplicity, single-binary distribution, minimal resource consumption, speed).
-1. Assessment: We determine whether the proposal is apt, feasible, and aligned with the project roadmap.
-1. Execution: If approved, we formulate prompt specifications and task plans, and our AI agents implement, test, benchmark, and release the changes.
-
-Thank you for helping make px0 better.
+Use your own Git identity for commits. Do not add generated assistant co-author trailers. Keep the original [MIT license](LICENSE) and upstream attribution with redistributed code.

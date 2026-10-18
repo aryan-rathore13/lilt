@@ -1,7 +1,7 @@
 package main
 
 import (
-	iign "px0/internal/ignore"
+	iign "github.com/aryan-rathore13/lilt/internal/ignore"
 )
 
 type ruleKind = iign.RuleKind

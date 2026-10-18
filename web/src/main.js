@@ -64,13 +64,62 @@ initLineComment();
 initUnpushed();
 initPRScope();
 
+// On small screens the existing side panes become dismissible drawers.
+// Keep the desktop pane choices when crossing the responsive breakpoint.
+function initResponsiveNavigation() {
+  const narrow = matchMedia('(max-width: 720px)');
+  let desktopPanels = null;
+  const sync = () => {
+    $('#mobile-files').setAttribute('aria-expanded', String(!document.body.classList.contains('side-hidden')));
+    $('#mobile-inspector').setAttribute('aria-expanded', String(!document.body.classList.contains('right-hidden')));
+  };
+  const close = () => {
+    document.body.classList.add('side-hidden', 'right-hidden');
+    layout(); render();
+  };
+  const adapt = () => {
+    if (narrow.matches) {
+      desktopPanels = {
+        side: document.body.classList.contains('side-hidden'),
+        right: document.body.classList.contains('right-hidden'),
+      };
+      close();
+    } else if (desktopPanels) {
+      document.body.classList.toggle('side-hidden', desktopPanels.side);
+      document.body.classList.toggle('right-hidden', desktopPanels.right);
+      desktopPanels = null;
+      layout(); render();
+    }
+    sync();
+  };
+  $('#mobile-files').addEventListener('click', () => {
+    const open = document.body.classList.contains('side-hidden');
+    document.body.classList.toggle('side-hidden', !open);
+    document.body.classList.add('right-hidden');
+    layout(); render();
+  });
+  $('#mobile-inspector').addEventListener('click', () => {
+    const open = document.body.classList.contains('right-hidden');
+    document.body.classList.toggle('right-hidden', !open);
+    document.body.classList.add('side-hidden');
+    layout(); render();
+  });
+  $('#mobile-drawer-shade').addEventListener('click', close);
+  treeEl.addEventListener('click', e => {
+    if (narrow.matches && e.target.closest('.tr.file') && !e.target.closest('button')) close();
+  });
+  new MutationObserver(sync).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  narrow.addEventListener('change', adapt);
+  adapt();
+}
+
 // Bootstrap application lifecycle
 (async function boot() {
   try {
     initTheme();
 
     // Restore word wrap (default ON)
-    const wrapPref = localStorage.getItem('px0.wrap');
+    const wrapPref = localStorage.getItem('lilt.wrap');
     S.wrap = wrapPref !== null ? wrapPref === 'true' : true;
     document.body.classList.toggle('word-wrap', S.wrap);
 
@@ -79,9 +128,9 @@ initPRScope();
     document.body.classList.remove('hide-lines');
 
     // Restore Markdown preview (default ON)
-    const mdPref = localStorage.getItem('px0.mdPreview');
+    const mdPref = localStorage.getItem('lilt.mdPreview');
     S.mdPreview = mdPref !== null ? mdPref === 'true' : true;
-    const tablePref = localStorage.getItem('px0.tablePreview');
+    const tablePref = localStorage.getItem('lilt.tablePreview');
     S.tablePreview = tablePref !== null ? tablePref === 'true' : true;
 
     updateEditorOptionControls();
@@ -97,7 +146,8 @@ initPRScope();
   applyAgentMeta();
   initPR();
   showRightInspector(); // the right sidebar starts open, on Threads when there is a harness
-  document.title = S.meta.name + ' - px0';
+  initResponsiveNavigation();
+  document.title = S.meta.name + ' · Lilt';
   $('#root-name').textContent = S.meta.name;
   $('#root-name').title = S.meta.root;
   if (S.meta.workbench) {
@@ -105,8 +155,8 @@ initPRScope();
     const back = document.createElement('a');
     back.className = 'mini wb-back';
     back.href = S.meta.workbench;
-    back.title = 'Back to the px0 workbench';
-    back.setAttribute('aria-label', 'Back to the px0 workbench');
+    back.title = 'Back to the Lilt workbench';
+    back.setAttribute('aria-label', 'Back to the Lilt workbench');
     back.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>';
     $('#root-name').before(back);
   }
@@ -116,7 +166,7 @@ initPRScope();
     const stVerEl = $('#st-ver');
     if (stVerEl) {
       stVerEl.textContent = 'v' + S.meta.version;
-      stVerEl.title = `px0 v${S.meta.version} (Click for shortcuts & help)`;
+      stVerEl.title = `Lilt v${S.meta.version} (Click for shortcuts & help)`;
     }
   }
   updateStatus();
@@ -126,7 +176,7 @@ initPRScope();
   // Split into helpers so the readiness poll below can redo this once the
   // background indexer (main.go's `go ix.Build()`) finishes: gitChanges/
   // gitFiles are zero until then, so a session that loads before indexing
-  // completes (common right after `px0 <pr-url>`) would otherwise never
+  // completes (common right after `lilt <pr-url>`) would otherwise never
   // auto-select a diff tab -- until the next manual reload.
   const applyGitSidebarState = async () => {
     // The unpushed list decides this too: a clean tree with local commits

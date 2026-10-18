@@ -1,10 +1,10 @@
 #!/usr/bin/env sh
-# Build px0 for every supported platform into dist/.
+# Build lilt for every supported platform into dist/.
 set -eu
 
 VERSION=$(cat VERSION | tr -d ' \r\n')
 OUT=${OUT:-dist}
-POSTHOG_KEY="${POSTHOG_KEY:-${PX0_POSTHOG_KEY:-}}"
+POSTHOG_KEY="${POSTHOG_KEY:-${LILT_POSTHOG_KEY:-}}"
 
 LDFLAGS="-s -w"
 if [ -n "$POSTHOG_KEY" ]; then
@@ -29,7 +29,7 @@ for t in $TARGETS; do
   arch=${t#*/}
   ext=""
   [ "$os" = "windows" ] && ext=".exe"
-  name="px0-$VERSION-$os-$arch$ext"
+  name="lilt-$VERSION-$os-$arch$ext"
   printf '  %-28s' "$name"
   CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" \
     go build -trimpath -ldflags="$LDFLAGS" -o "$OUT/$name" .
@@ -37,3 +37,16 @@ for t in $TARGETS; do
 done
 
 echo "built $(ls -1 "$OUT" | wc -l | tr -d ' ') binaries in $OUT/"
+
+# Share the same checksums with the installer and in-app updater.
+(
+  cd "$OUT"
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum lilt-* > checksums.txt
+  elif command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 lilt-* > checksums.txt
+  else
+    echo "SHA-256 generation requires sha256sum or shasum" >&2
+    exit 1
+  fi
+)

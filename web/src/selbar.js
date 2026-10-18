@@ -40,7 +40,7 @@ let threadHandler = null;
 export function setThreadHandler(fn) { threadHandler = fn; }
 
 /* Same one-way registration for PR review comments (pr.js), active only in a
-   `px0 pr ...` session. */
+   `lilt pr ...` session. */
 let reviewHandler = null;
 export function setReviewHandler(fn) { reviewHandler = fn; }
 // Read-only accessor so the diff gutter's pencil (linecomment.js) can offer

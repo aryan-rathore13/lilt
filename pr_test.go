@@ -21,10 +21,10 @@ func TestDetectPRURL(t *testing.T) {
 		owner, repo string
 		num         int
 	}{
-		{arg: "https://github.com/px0-ai/px0/pull/42", wantOK: true, owner: "px0-ai", repo: "px0", num: 42},
-		{arg: "http://github.com/px0-ai/px0/pull/7", wantOK: true, owner: "px0-ai", repo: "px0", num: 7},
-		{arg: "github.com/px0-ai/px0/pull/1", wantOK: true, owner: "px0-ai", repo: "px0", num: 1},
-		{arg: "https://github.com/px0-ai/px0.git/pull/99", wantOK: true, owner: "px0-ai", repo: "px0", num: 99},
+		{arg: "https://github.com/aryan-rathore13/lilt/pull/42", wantOK: true, owner: "aryan-rathore13", repo: "lilt", num: 42},
+		{arg: "http://github.com/aryan-rathore13/lilt/pull/7", wantOK: true, owner: "aryan-rathore13", repo: "lilt", num: 7},
+		{arg: "github.com/aryan-rathore13/lilt/pull/1", wantOK: true, owner: "aryan-rathore13", repo: "lilt", num: 1},
+		{arg: "https://github.com/aryan-rathore13/lilt.git/pull/99", wantOK: true, owner: "aryan-rathore13", repo: "lilt", num: 99},
 		// Bare numbers must NOT be accepted as PR targets
 		{arg: "42", wantOK: false},
 		{arg: "123", wantOK: false},
@@ -32,8 +32,8 @@ func TestDetectPRURL(t *testing.T) {
 		{arg: "src/main.go", wantOK: false},
 		{arg: ".", wantOK: false},
 		// Non-PR GitHub URLs must NOT be accepted
-		{arg: "https://github.com/px0-ai/px0", wantOK: false},
-		{arg: "https://github.com/px0-ai/px0/issues/42", wantOK: false},
+		{arg: "https://github.com/aryan-rathore13/lilt", wantOK: false},
+		{arg: "https://github.com/aryan-rathore13/lilt/issues/42", wantOK: false},
 		// Invalid / empty
 		{arg: "not a url", wantOK: false},
 		{arg: "", wantOK: false},
@@ -128,11 +128,11 @@ func TestSubmitReviewPayload(t *testing.T) {
 		{ID: 1, Path: "main.go", Line: 10, Side: "RIGHT", Body: "looks good"},
 		{ID: 2, Path: "old.go", Line: 5, Side: "LEFT", Body: "deleted line comment"},
 	}
-	err := submitReview(ctx, "px0-ai", "px0", 42, "dummy-token", "abc123sha", comments, "APPROVE", "Overall LGTM")
+	err := submitReview(ctx, "aryan-rathore13", "lilt", 42, "dummy-token", "abc123sha", comments, "APPROVE", "Overall LGTM")
 	if err != nil {
 		t.Fatalf("submitReview failed: %v", err)
 	}
-	if capturedPath != "/repos/px0-ai/px0/pulls/42/reviews" {
+	if capturedPath != "/repos/aryan-rathore13/lilt/pulls/42/reviews" {
 		t.Errorf("unexpected path: %q", capturedPath)
 	}
 	var payload struct {
@@ -180,8 +180,8 @@ func TestPRSessionCloseRefCleanup(t *testing.T) {
 	run("config", "user.email", "test@test.local")
 	run("commit", "--allow-empty", "-m", "initial")
 
-	run("update-ref", "refs/px0/pr/99", "HEAD")
-	run("update-ref", "refs/px0/base/99", "HEAD")
+	run("update-ref", "refs/lilt/pr/99", "HEAD")
+	run("update-ref", "refs/lilt/base/99", "HEAD")
 
 	tmpWT := t.TempDir()
 	p := &prSession{
@@ -191,13 +191,13 @@ func TestPRSessionCloseRefCleanup(t *testing.T) {
 	}
 	p.Close()
 
-	checkRef := exec.Command("git", "-C", root, "rev-parse", "--verify", "refs/px0/pr/99")
+	checkRef := exec.Command("git", "-C", root, "rev-parse", "--verify", "refs/lilt/pr/99")
 	if err := checkRef.Run(); err == nil {
-		t.Errorf("refs/px0/pr/99 was not deleted on Close")
+		t.Errorf("refs/lilt/pr/99 was not deleted on Close")
 	}
-	checkBase := exec.Command("git", "-C", root, "rev-parse", "--verify", "refs/px0/base/99")
+	checkBase := exec.Command("git", "-C", root, "rev-parse", "--verify", "refs/lilt/base/99")
 	if err := checkBase.Run(); err == nil {
-		t.Errorf("refs/px0/base/99 was not deleted on Close")
+		t.Errorf("refs/lilt/base/99 was not deleted on Close")
 	}
 }
 
@@ -245,9 +245,9 @@ func TestPRSessionPullFastForwardAndDiverge(t *testing.T) {
 	gitTestRun(t, srcRepo, "checkout", "-q", "main")
 
 	// Check out the PR into a worktree, same as checkoutPR does.
-	gitTestRun(t, srcRepo, "fetch", "--no-tags", "origin", "refs/pull/99/head:refs/px0/pr/99")
+	gitTestRun(t, srcRepo, "fetch", "--no-tags", "origin", "refs/pull/99/head:refs/lilt/pr/99")
 	worktree := filepath.Join(base, "wt")
-	gitTestRun(t, srcRepo, "worktree", "add", "--detach", worktree, "refs/px0/pr/99")
+	gitTestRun(t, srcRepo, "worktree", "add", "--detach", worktree, "refs/lilt/pr/99")
 
 	p := &prSession{
 		worktree: worktree,
@@ -410,7 +410,7 @@ func TestFetchPRMetaMerged(t *testing.T) {
 			"head": {
 				"ref": "fix-race",
 				"sha": "fedcba987654",
-				"repo": {"clone_url": "https://github.com/alice/px0.git", "full_name": "alice/px0"}
+				"repo": {"clone_url": "https://github.com/alice/lilt.git", "full_name": "alice/lilt"}
 			}
 		}`
 		return &http.Response{
@@ -420,7 +420,7 @@ func TestFetchPRMetaMerged(t *testing.T) {
 		}, nil
 	})
 
-	meta, err := fetchPRMeta(context.Background(), "px0-ai", "px0", 55, "")
+	meta, err := fetchPRMeta(context.Background(), "aryan-rathore13", "lilt", 55, "")
 	if err != nil {
 		t.Fatalf("fetchPRMeta failed: %v", err)
 	}
@@ -460,7 +460,7 @@ func TestCheckoutPRMergedAlwaysProceeds(t *testing.T) {
 			"head": {
 				"ref": "feature-x",
 				"sha": "1234567890ab",
-				"repo": {"clone_url": %q, "full_name": "px0-ai/px0"}
+				"repo": {"clone_url": %q, "full_name": "aryan-rathore13/lilt"}
 			}
 		}`, localRepo)
 		return &http.Response{
@@ -470,7 +470,7 @@ func TestCheckoutPRMergedAlwaysProceeds(t *testing.T) {
 		}, nil
 	})
 
-	target := PRTarget{Provider: "github", Owner: "px0-ai", Repo: "px0", Number: 77}
+	target := PRTarget{Provider: "github", Owner: "aryan-rathore13", Repo: "lilt", Number: 77}
 	_, err := checkoutPR(context.Background(), &GitHubProvider{}, target, t.TempDir(), nil)
 	// Must not be ErrPRMergedCancelled; merged PRs are always opened without blocking.
 	if errors.Is(err, ErrPRMergedCancelled) {

@@ -1,94 +1,63 @@
-# Remote Workspaces & Cloud Inspection
+# Remote workspaces
 
-px0 is architected from the ground up as a remote-first code reading environment. It allows you to run a single binary on any remote server, cloud instance, Docker container, or CI runner and browse the codebase directly in your local desktop browser without SSH keys, port forwarding setups, or heavy remote extension daemons.
+Lilt runs its Go backend on the machine that owns the workspace and serves its interface in your browser. It works locally by default and can also run on a persistent remote machine reached through a private network or authenticated tunnel.
 
----
+The standalone binary includes the interface. Git, language servers, and coding harnesses are separate tools used by their corresponding features. No Node.js runtime or database is required to run the binary.
 
-## Overview & Core Purpose
+## Access and permissions
 
-Modern software development frequently takes place across cloud instances (AWS EC2, GCP Compute Engine), remote containers, Kubernetes pods, and devboxes. Traditional remote development setups (such as VS Code Remote-SSH, remote X11 forwarding, or VNC) require multi-step authentication setups, background server daemon installations, high CPU overhead, and significant network bandwidth.
+The default bind address is `127.0.0.1:7777`. Keep that default for a local installation or a tunnel that connects to loopback.
 
-px0 simplifies remote code inspection into a single shell command. Because the entire application—Go backend, HTTP server, assets, and frontend—is compiled into one static ~3.5 MB binary with zero external dependencies, you can copy px0 to any remote Linux, macOS, or BSD machine and spin it up instantly. Connecting via Tailscale, WireGuard, private VPCs, or reverse proxies gives you a fluid, graphical code inspection console in your browser.
+Anyone who can reach a workspace server may be able to read or change files, operate Git, or invoke installed coding agents. The workbench can browse and open directories its service user can read. Request-origin and path checks are useful boundaries, but they do not provide user authentication or isolate tenants. Coding harnesses execute with the launching user's permissions.
 
----
+Protect remote access with a private network, SSH tunnel, or authenticated gateway. Do not expose an unprotected workspace server to the public internet. Mutating endpoints also enforce host/origin restrictions; arbitrary external hostnames may not support the same editing operations as direct localhost or private-IP access.
 
-## Key Capabilities
+## Private remote machine
 
-- **Zero Remote Daemons**: No Node.js runtime, no npm packages, no Electron layers, and no background extension churn on the remote machine.
-- **Single Port Operation**: px0 serves all assets, JSON APIs, and search queries over a single HTTP port (default `7777`).
-- **Flexible Network Binding**:
-  - Bind to localhost for private tunnels (`-host 127.0.0.1`).
-  - Bind to all interfaces for Tailscale/VPN access (`-host 0.0.0.0`).
-- **Headless Server Mode (`-no-open`)**: Starts the server silently on remote machines or in Docker containers without attempting to invoke a local web browser.
-- **Built-in Security & Sandboxing**:
-  - **Path Traversal Protection**: Enforces strict path sandboxing; requests attempting to escape the workspace root using `../` or symlink cycle attacks are immediately blocked.
-  - **DNS Rebinding Defense**: Inspects incoming HTTP `Host` headers to prevent cross-site scripting attacks via malicious DNS records.
-  - **Agent Security Restrictions**: Agent editing commands are permitted only over direct IP addresses or `localhost`. Access over external hostnames or tunnel proxies automatically disables agent modifications to protect remote machines.
-- **Direct Terminal Ergonomics**: Launch px0 targeting specific files or line numbers directly from the command line:
-  - `px0` (opens the [review workbench](workbench.md); `px0 .` opens the current directory)
-  - `px0 ~/projects/kernel` (opens specified repository)
-  - `px0 main.go:42` (opens directly to line 42)
-- **Built-in Self-Updater (`px0 --update`)**: Checks GitHub releases and seamlessly upgrades the single binary in place.
+For a machine on Tailscale or WireGuard, bind to its private interface address:
 
----
-
-## Developer Workflows & Setup Patterns
-
-### 1. Cloud Devbox via Tailscale or WireGuard
-Run px0 on your cloud instance bound to all interfaces:
 ```bash
-px0 -host 0.0.0.0 -port 7777 ~/work/repo
-```
-Open your local browser to `http://100.x.y.z:7777` (your machine's private Tailscale IP). You get full code reading, fuzzy search, and diff inspection with zero SSH lag.
-
-### 2. Ephemeral Docker Container Inspection
-Inspect code inside a running container or test environment:
-```bash
-docker run -p 7777:7777 -v $(pwd):/workspace px0:latest -host 0.0.0.0 /workspace
+lilt -host <private-interface-ip> -port 7777 -no-open ~/work/repo
 ```
 
-### 3. CI/CD Runner Debugging
-When a build or test suite fails on a remote CI runner, download px0, run it in the background, and inspect generated artifacts, failure logs, and git status directly in your browser.
+Replace `<private-interface-ip>` with the actual address and restrict access to trusted devices. Alternatively, keep Lilt on loopback and forward its port through an authenticated SSH connection. Open the corresponding private or forwarded URL in your local browser.
 
-### 4. Reverse Proxy & Subpath Hosting (`-base-path`)
-When hosting px0 behind a reverse proxy (Nginx, Traefik, Caddy), an API gateway, or a multi-tenant cloud platform (such as PR review pods at `https://tenant.px0.ai/rev-123/` or internal portals at `https://corp.internal/tools/px0/`), px0 is served from a URL subpath rather than the root domain (`/`).
+## Container
 
-Run px0 with `-base-path`:
+Build the image from this checkout; no public container image is assumed:
+
 ```bash
-px0 -base-path /rev-123/ -host 0.0.0.0 -port 7777 ~/workspace
+docker build -t lilt:local .
+docker run --rm -p 127.0.0.1:7777:7777 -v "$PWD:/workspace" lilt:local /workspace
 ```
 
-**When to use `-base-path`:**
-- **Hosted/Multi-Tenant Review Platforms**: When each PR review environment runs in an isolated container/pod routed through an edge gateway under a subpath (e.g. `/rev-<id>/`).
-- **Path-Based Ingress Routing**: When routing traffic through an existing domain or Kubernetes Ingress where the root `/` is reserved for another service.
-- **Corporate Dev Portals & Reverse Proxies**: When proxying multiple developer tools behind paths like `/tools/code-review/`.
+The Docker image starts Lilt on all interfaces inside the container. Publishing its port on host loopback limits direct host access. The mounted workspace is writable, so review which files and credentials the container can access. Additional language servers or coding harnesses need to be installed separately if you want those features.
 
-**What `-base-path` does:**
-- Prefixes all Go HTTP multiplexer endpoints (`/<base-path>/api/...`, `/<base-path>/static/...`).
-- Dynamically injects `<base href="/<base-path>/">` into the served `index.html`, allowing the browser to resolve all relative asset requests, WebSocket/SSE connections, and API calls correctly.
-- Automatically handles redirects: requests to `/<base-path>` without a trailing slash redirect to `/<base-path>/`, and root `/` redirects to the configured base path.
+## Reverse proxy and subpaths
 
----
+When a protected gateway routes Lilt under a path, set `-base-path`:
 
-## CLI Flag Reference
+```bash
+lilt -base-path /rev-123/ -host 127.0.0.1 -port 7777 -no-open ~/workspace
+```
+
+Configure the gateway to reach that loopback service and enforce authentication before proxying. The flag prefixes API and static-asset routes, inserts the correct base URL, and redirects the missing trailing slash. Example addresses such as `https://review.example.com/rev-123/` are placeholders, not hosted Lilt services.
+
+## CLI reference
 
 | Flag | Default | Description |
-| :--- | :--- | :--- |
-| `-base-path P` | `"/"` | Base URL path prefix to serve endpoints and assets from (e.g. `/rev-123/`). Also configurable in settings via `server.basePath`. |
-| `-port N` | `7777` | Port to listen on (`0` picks an ephemeral free port) |
-| `-host H` | `127.0.0.1` | Network address to bind |
-| `-no-open` | `false` | Suppress automatic browser launch (ideal for servers) |
-| `-no-lsp` | `false` | Disable Language Server discovery |
-| `-no-git` | `false` | Disable Git status checks and diff viewing |
-| `-agent H` | none | Pin active coding agent harness for session |
-| `-no-agent` | `false` | Disable coding agent editing features entirely |
-| `-verbose` | `false` | Log every HTTP request, searches, symbols, and agent prompts to terminal |
-| `-quiet` | `false` | Suppress CLI narration on stdout |
-| `-update` | `false` | Check for updates and install latest release |
-| `-version` | `false` | Print version and architecture and exit |
+| --- | --- | --- |
+| `-base-path P` | `/` | URL prefix; can also be set with `server.basePath` |
+| `-port N` | `7777` | Listen port; `0` selects an available port |
+| `-host H` | `127.0.0.1` | Bind address |
+| `-no-open` | `false` | Do not open a browser on the server |
+| `-no-lsp` | `false` | Disable language-server use |
+| `-no-git` | `false` | Disable Git awareness |
+| `-agent H` | unset | Pin a coding harness |
+| `-no-agent` | `false` | Disable coding-harness features |
+| `-verbose` | `false` | Log request and operation details |
+| `-quiet` | `false` | Suppress CLI narration |
+| `-update` | `false` | Install an available published release |
+| `-version` | `false` | Print version and architecture |
 
----
-
-## Technical Architecture Deep Dive
-
-For an architectural breakdown of HTTP routing, gzip connection pooling, symlink cycle immunity, and memory scavenging pipelines, see [System Architecture & Runtime Lifecycle Internals](../internals/architecture.md).
+See [deployment](../deployment.md) for the public landing page and release distribution. Vercel serves the static landing page; remote workspace execution needs a persistent machine. See [architecture](../internals/architecture.md) for routing, path checks, and memory reclamation.

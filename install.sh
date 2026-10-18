@@ -1,17 +1,18 @@
 #!/usr/bin/env sh
-# Universal installer script for px0 (https://px0.ai)
+# Universal installer script for lilt (https://github.com/aryan-rathore13/lilt)
 #
 # Usage:
-#   curl -fsSL https://px0.ai/install.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/aryan-rathore13/lilt/main/install.sh | sh
 #
 # Environment variables:
 #   VERSION      - target version to install (e.g. "0.1.0" or "latest", default: "latest")
 #   INSTALL_DIR  - target directory for binary (default: /usr/local/bin or ~/.local/bin)
-#   PX0_REPO     - GitHub repository (default: px0-ai/px0)
+#   LILT_REPO     - GitHub repository (default: aryan-rathore13/lilt)
+#   LILT_INSTALL_DIR - branded alias for INSTALL_DIR
 
 set -eu
 
-REPO="${PX0_REPO:-px0-ai/px0}"
+REPO="${LILT_REPO:-aryan-rathore13/lilt}"
 VERSION="${VERSION:-latest}"
 
 # Color codes
@@ -98,9 +99,9 @@ if [ "$VERSION" = "latest" ]; then
   if [ -n "$RELEASE_JSON" ]; then
     VERSION=$(printf '%s' "$RELEASE_JSON" | grep '"tag_name":' | head -n 1 | sed -E 's/.*"tag_name": *"([^"]+)".*/\1/' | sed 's/^v//')
   fi
-  # Fallback to VERSION file in master if release API returned empty/rate-limited
+  # Fallback to VERSION file in main if release API returned empty/rate-limited
   if [ -z "$VERSION" ] || [ "$VERSION" = "latest" ]; then
-    VERSION=$(fetch "https://raw.githubusercontent.com/${REPO}/master/VERSION" 2>/dev/null | tr -d ' \r\n' || true)
+    VERSION=$(fetch "https://raw.githubusercontent.com/${REPO}/main/VERSION" 2>/dev/null | tr -d ' \r\n' || true)
   fi
 fi
 
@@ -120,7 +121,7 @@ is_writable() {
   d="$1"
   [ -z "$d" ] && return 1
   mkdir -p "$d" 2>/dev/null || return 1
-  test_file="$d/.px0_test_$$"
+  test_file="$d/.lilt_test_$$"
   if ( : > "$test_file" ) 2>/dev/null; then
     rm -f "$test_file" 2>/dev/null
     return 0
@@ -129,8 +130,8 @@ is_writable() {
 }
 
 # Priority 1: Explicit user overrides
-if [ -n "${PX0_INSTALL_DIR:-}" ] && is_writable "$PX0_INSTALL_DIR"; then
-  TARGET_DIR="$PX0_INSTALL_DIR"
+if [ -n "${LILT_INSTALL_DIR:-}" ] && is_writable "$LILT_INSTALL_DIR"; then
+  TARGET_DIR="$LILT_INSTALL_DIR"
 elif [ -n "${INSTALL_DIR:-}" ] && is_writable "$INSTALL_DIR"; then
   TARGET_DIR="$INSTALL_DIR"
 fi
@@ -169,12 +170,12 @@ if [ -z "$TARGET_DIR" ]; then
     TARGET_DIR="/usr/local/bin"
   else
     # Emergency fallback (e.g. read-only HOME without sudo)
-    TARGET_DIR="${TMPDIR:-/tmp}/px0/bin"
+    TARGET_DIR="${TMPDIR:-/tmp}/lilt/bin"
     mkdir -p "$TARGET_DIR" 2>/dev/null || true
   fi
 fi
 
-TARGET_BIN="${TARGET_DIR}/px0${BINARY_EXT}"
+TARGET_BIN="${TARGET_DIR}/lilt${BINARY_EXT}"
 
 # 6. Check existing installation and version
 ACTION="Installed"
@@ -191,7 +192,7 @@ if [ -f "$TARGET_BIN" ] || [ -L "$TARGET_BIN" ]; then
   fi
 
   if [ -n "$CURRENT_VER" ]; then
-    log_step "Found existing px0 v${CURRENT_VER} at ${BOLD}${TARGET_BIN}${RESET}"
+    log_step "Found existing lilt v${CURRENT_VER} at ${BOLD}${TARGET_BIN}${RESET}"
     ACTION="Updated"
   else
     log_step "Replacing existing binary at ${BOLD}${TARGET_BIN}${RESET}..."
@@ -199,17 +200,19 @@ if [ -f "$TARGET_BIN" ] || [ -L "$TARGET_BIN" ]; then
   fi
 fi
 
-BINARY_NAME="px0-${VERSION}-${OS}-${ARCH}${BINARY_EXT}"
-DOWNLOAD_URL="https://github.com/${REPO}/releases/download/v${VERSION}/${BINARY_NAME}"
+BINARY_NAME="lilt-${VERSION}-${OS}-${ARCH}${BINARY_EXT}"
+RELEASE_URL="https://github.com/${REPO}/releases/download/v${VERSION}"
+DOWNLOAD_URL="${RELEASE_URL}/${BINARY_NAME}"
 
 # Fallback download url without 'v' prefix in tag if needed
-FALLBACK_URL="https://github.com/${REPO}/releases/download/${VERSION}/${BINARY_NAME}"
+FALLBACK_RELEASE_URL="https://github.com/${REPO}/releases/download/${VERSION}"
+FALLBACK_URL="${FALLBACK_RELEASE_URL}/${BINARY_NAME}"
 
-TMP_DIR="$(mktemp -d 2>/dev/null || mktemp -d -t 'px0install')"
+TMP_DIR="$(mktemp -d 2>/dev/null || mktemp -d -t 'liltinstall')"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
 log_step "Downloading ${BINARY_NAME}..."
-TMP_FILE="${TMP_DIR}/px0"
+TMP_FILE="${TMP_DIR}/lilt"
 
 if ! fetch_file "$DOWNLOAD_URL" "$TMP_FILE" 2>/dev/null; then
   if ! fetch_file "$FALLBACK_URL" "$TMP_FILE" 2>/dev/null; then
@@ -217,8 +220,43 @@ if ! fetch_file "$DOWNLOAD_URL" "$TMP_FILE" 2>/dev/null; then
     log_warn "If this version is newly tagged, the GitHub Action release build may still be compiling."
     exit 1
   fi
+  RELEASE_URL="$FALLBACK_RELEASE_URL"
 fi
 
+# Verify release integrity before installing or running the downloaded binary.
+CHECKSUM_FILE="${TMP_DIR}/checksums.txt"
+if ! fetch_file "${RELEASE_URL}/checksums.txt" "$CHECKSUM_FILE"; then
+  log_error "Could not download release checksums. Nothing was installed."
+  exit 1
+fi
+EXPECTED_HASH=$(awk -v asset="$BINARY_NAME" '
+  $2 == asset || $2 == "*" asset { hash = $1; count++ }
+  END { if (count == 1) print hash; else exit 1 }
+' "$CHECKSUM_FILE") || {
+  log_error "Release checksums must contain exactly one entry for ${BINARY_NAME}."
+  exit 1
+}
+if ! printf '%s\n' "$EXPECTED_HASH" | grep -Eq '^[0-9a-fA-F]{64}$'; then
+  log_error "Invalid SHA-256 checksum for ${BINARY_NAME}."
+  exit 1
+fi
+if command -v sha256sum >/dev/null 2>&1; then
+  ACTUAL_HASH=$(sha256sum "$TMP_FILE" | awk '{print $1}')
+elif command -v shasum >/dev/null 2>&1; then
+  ACTUAL_HASH=$(shasum -a 256 "$TMP_FILE" | awk '{print $1}')
+elif command -v openssl >/dev/null 2>&1; then
+  ACTUAL_HASH=$(openssl dgst -sha256 "$TMP_FILE" | awk '{print $NF}')
+else
+  log_error "SHA-256 verification requires sha256sum, shasum, or openssl. Nothing was installed."
+  exit 1
+fi
+EXPECTED_HASH=$(printf '%s' "$EXPECTED_HASH" | tr '[:upper:]' '[:lower:]')
+ACTUAL_HASH=$(printf '%s' "$ACTUAL_HASH" | tr '[:upper:]' '[:lower:]')
+if [ "$ACTUAL_HASH" != "$EXPECTED_HASH" ]; then
+  log_error "SHA-256 verification failed for ${BINARY_NAME}. Nothing was installed."
+  exit 1
+fi
+log_info "Verified SHA-256 checksum."
 chmod +x "$TMP_FILE"
 
 # 7. Install / Replace binary
@@ -236,9 +274,9 @@ else
 fi
 
 if [ "$ACTION" = "Updated" ]; then
-  log_info "px0 successfully updated (v${CURRENT_VER} -> v${VERSION})!"
+  log_info "lilt successfully updated (v${CURRENT_VER} -> v${VERSION})!"
 else
-  log_info "px0 v${VERSION} installed successfully!"
+  log_info "lilt v${VERSION} installed successfully!"
 fi
 
 # Check if TARGET_DIR is in PATH
@@ -297,7 +335,7 @@ if [ "$PATH_ALREADY_CONFIGURED" = "0" ]; then
     if has_path_configured "$SHELL_RC" "$TARGET_DIR"; then
       log_info "PATH addition already present in ${SHELL_RC}."
     else
-      printf "\n# Added by px0 installer\nexport PATH=\"%s:\$PATH\"\n" "$TARGET_DIR" >> "$SHELL_RC"
+      printf "\n# Added by lilt installer\nexport PATH=\"%s:\$PATH\"\n" "$TARGET_DIR" >> "$SHELL_RC"
       log_info "Added ${TARGET_DIR} to PATH in ${SHELL_RC}"
     fi
   else
@@ -306,6 +344,6 @@ if [ "$PATH_ALREADY_CONFIGURED" = "0" ]; then
   fi
 fi
 
-printf "\nRun %b to inspect any directory:\n\n" "${BOLD}px0${RESET}"
-printf "  ${AMBER}px0 .${RESET}                 # inspect current directory\n"
-printf "  ${AMBER}px0 /path/to/project${RESET}  # or pass any directory path\n\n"
+printf "\nRun %b to inspect any directory:\n\n" "${BOLD}lilt${RESET}"
+printf "  ${AMBER}lilt .${RESET}                 # inspect current directory\n"
+printf "  ${AMBER}lilt /path/to/project${RESET}  # or pass any directory path\n\n"

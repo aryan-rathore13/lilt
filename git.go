@@ -719,7 +719,7 @@ func gitRecentCommits(root string, count int) []GitCommit {
 /* ---------- unpushed commits (@{u}..HEAD) ----------
 
    Everything below reads commits that exist locally but not on the tracking
-   branch, so they can be reviewed in px0 before they are pushed. All of it is
+   branch, so they can be reviewed in lilt before they are pushed. All of it is
    strictly read-only and fails quiet: no upstream, no git, or a bad SHA all
    yield an empty result rather than an error, and the sidebar section simply
    doesn't appear. */
@@ -764,7 +764,7 @@ type CommitDetail struct {
 }
 
 // shaRe bounds what reaches git as a revision. Every SHA the frontend sends
-// came from a list px0 itself produced, so anything else is a bug or a probe;
+// came from a list lilt itself produced, so anything else is a bug or a probe;
 // refusing it keeps a crafted "--upload-pack=..." out of an exec argument.
 var shaRe = regexp.MustCompile(`^[0-9a-fA-F]{4,40}$`)
 

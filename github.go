@@ -78,7 +78,7 @@ func (g *GitHubProvider) ReplyToReviewComment(ctx context.Context, target PRTarg
 	return replyToReviewComment(ctx, target.Owner, target.Repo, target.Number, token, commentID, body)
 }
 
-// resolveGitHubToken looks for a token in order: the explicit px0 setting
+// resolveGitHubToken looks for a token in order: the explicit lilt setting
 // (github.token), the GITHUB_TOKEN environment variable, GH_TOKEN, then the gh CLI
 // if installed and logged in. An empty return means PR review stays read-only.
 func resolveGitHubToken(cfg settings) (token, source string) {
@@ -228,7 +228,7 @@ type prComment struct {
 
 // submitReview posts one review carrying every draft comment plus an overall
 // verdict in a single call, mirroring GitHub's own draft-then-submit model
-// so px0 never needs a per-comment endpoint.
+// so lilt never needs a per-comment endpoint.
 func submitReview(ctx context.Context, owner, repo string, num int, token, commitID string, comments []prComment, event, body string) error {
 	type reviewComment struct {
 		Path string `json:"path"`

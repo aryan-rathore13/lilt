@@ -50,7 +50,7 @@ func cleanBasePath(p string) string {
 	return p
 }
 
-// Server is the main px0 HTTP server handling the web UI, static assets,
+// Server is the main lilt HTTP server handling the web UI, static assets,
 // REST API endpoints, Server-Sent Events (SSE), and workspace services.
 type Server struct {
 	ix        *Index
@@ -58,7 +58,7 @@ type Server struct {
 	tel       *TelemetryService // nil in tests; Track is nil-safe
 	agent     *agentManager     // nil unless main wires editing for this session
 	threads   *threadManager    // nil unless editing is wired: threads run on the same harness
-	pr        *prSession        // nil unless main launched this process as `px0 pr ...`
+	pr        *prSession        // nil unless main launched this process as `lilt pr ...`
 	diffBase  string            // ref /api/diff and /api/gutter diff against; "HEAD" unless in PR mode
 	prHeadSHA string            // PR mode only: the checked-out PR head commit. Frozen boundary between
 	// the PR's own diff (diffBase..prHeadSHA) and the reviewer's local edits
@@ -68,7 +68,7 @@ type Server struct {
 	basePath   string
 	session    *sessionManager
 
-	workbenchURL string // the workbench's base path, when this px0 is one of its workspaces
+	workbenchURL string // the workbench's base path, when this lilt is one of its workspaces
 
 	lastReq atomic.Int64 // unix nanos of the most recent request
 }
@@ -189,7 +189,7 @@ func (s *Server) registerRoutes() {
 	s.mux.HandleFunc(s.routePath("/api/session"), s.handleSession)
 }
 
-// NewServer creates and initializes a px0 Server instance, binding index and language servers,
+// NewServer creates and initializes a lilt Server instance, binding index and language servers,
 // starting the background GitWatcher, and registering all HTTP and SSE routes.
 func NewServer(ix *Index, lsp *lspManager, basePaths ...string) *Server {
 	if lsp == nil {
@@ -702,12 +702,12 @@ var (
 
 func vendorCacheDir() string {
 	if c := os.Getenv("XDG_CACHE_HOME"); c != "" {
-		return filepath.Join(c, "px0", "vendor")
+		return filepath.Join(c, "lilt", "vendor")
 	}
 	if home, err := os.UserHomeDir(); err == nil && home != "" {
-		return filepath.Join(home, ".px0", "cache", "vendor")
+		return filepath.Join(home, ".lilt", "cache", "vendor")
 	}
-	return filepath.Join(os.TempDir(), "px0-cache", "vendor")
+	return filepath.Join(os.TempDir(), "lilt-cache", "vendor")
 }
 
 type memGzFile struct {
@@ -1902,7 +1902,7 @@ func (s *Server) handleUnpushed(w http.ResponseWriter, r *http.Request) {
 
 // handleCommitFiles returns the paths one commit touched, badged with git's
 // name-status letter. Unknown SHAs come back as an empty list, not an error:
-// the only way to ask for one is from a list px0 handed out, and a commit
+// the only way to ask for one is from a list lilt handed out, and a commit
 // that has since been rewritten is a stale click, not a failure worth a toast.
 func (s *Server) handleCommitFiles(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {

@@ -1,6 +1,6 @@
 # Pull Request Review & Agent Collaboration
 
-px0 can check out a pull request's full source tree and review it like any local workspace: full codebase navigation, symbol outline, LSP intelligence, and search, alongside a diff scoped to the PR's merge-base, real-time coding agent synchronization, inline comment drafting, AI batch application, and the same git panel a plain workspace has — so you can commit and push fixes back to the PR's own branch, and pull in new commits someone else pushed while you were reviewing.
+lilt can check out a pull request's full source tree and review it like any local workspace: full codebase navigation, symbol outline, LSP intelligence, and search, alongside a diff scoped to the PR's merge-base, real-time coding agent synchronization, inline comment drafting, AI batch application, and the same git panel a plain workspace has — so you can commit and push fixes back to the PR's own branch, and pull in new commits someone else pushed while you were reviewing.
 
 ---
 
@@ -8,12 +8,12 @@ px0 can check out a pull request's full source tree and review it like any local
 
 GitHub's web PR view shows you the isolated diff, but not the codebase around it: jumping to a caller three files away, or checking how a changed function is used elsewhere, means either trusting memory or manually cloning and switching branches.
 
-With px0, you simply pass the pull request URL:
+With lilt, you simply pass the pull request URL:
 ```bash
-px0 https://github.com/owner/repo/pull/123
+lilt https://github.com/owner/repo/pull/123
 ```
 
-px0 automatically prepares a temporary worktree or clone, computes the merge-base diff against the target branch, and opens a lightweight, zero-latency code viewer in your browser.
+lilt automatically prepares a temporary worktree or clone, computes the merge-base diff against the target branch, and opens a lightweight, zero-latency code viewer in your browser.
 
 ---
 
@@ -22,14 +22,14 @@ px0 automatically prepares a temporary worktree or clone, computes the merge-bas
 Pull request review is triggered by passing the full URL directly:
 
 ```bash
-px0 https://github.com/owner/repo/pull/123
+lilt https://github.com/owner/repo/pull/123
 ```
 
 > [!NOTE]
-> Bare PR numbers (e.g. `px0 123`) and the `px0 pr` subcommand have been deprecated in favor of explicit URL routing (`px0 <url>`). Running `px0 pr` provides a helpful reminder to pass the URL directly.
+> Bare PR numbers (e.g. `lilt 123`) and the `lilt pr` subcommand have been deprecated in favor of explicit URL routing (`lilt <url>`). Running `lilt pr` provides a helpful reminder to pass the URL directly.
 
 ### Interactive Preparation Spinner
-Because fetching metadata and checking out remote references takes a few moments, px0 displays an animated CLI spinner:
+Because fetching metadata and checking out remote references takes a few moments, lilt displays an animated CLI spinner:
 ```text
 ⠋ Fetching PR #123 metadata from github...
 ⠙ Fetching PR #123 head and preparing worktree...
@@ -39,13 +39,13 @@ Because fetching metadata and checking out remote references takes a few moments
 
 ### Merged PR Handling
 If the pull request is already merged:
-- px0 detects its merged status from the API and opens it directly without blocking.
+- lilt detects its merged status from the API and opens it directly without blocking.
 - In both the CLI checkout message and the browser review header, a prominent purple **`Merged`** pill badge is displayed.
 
 ### Multi-Session Isolation
-Each PR review runs as its own isolated process on its own port. Running `px0 https://github.com/owner/repo/pull/456` while another PR review or local workspace is open will not disturb existing sessions.
+Each PR review runs as its own isolated process on its own port. Running `lilt https://github.com/owner/repo/pull/456` while another PR review or local workspace is open will not disturb existing sessions.
 
-From inside a running px0 browser session, the Command Palette (`Cmd/Ctrl+K` → **Git: Open Pull Request…**) launches a new review process in a fresh browser tab. In a workspace opened from the [workbench](workbench.md), the PR opens as another workbench workspace instead.
+From inside a running lilt browser session, the Command Palette (`Cmd/Ctrl+K` → **Git: Open Pull Request…**) launches a new review process in a fresh browser tab. In a workspace opened from the [workbench](workbench.md), the PR opens as another workbench workspace instead.
 
 ---
 
@@ -58,7 +58,7 @@ From inside a running px0 browser session, the Command Palette (`Cmd/Ctrl+K` →
 
 ### 2. Live Agent Synchronization
 When you or your background AI coding agents (Claude Code, Gemini CLI, Cursor Agent, Antigravity, Aider, etc.) make edits to the PR checkout from other terminals:
-- px0's real-time file watcher immediately picks up modifications without full re-indexing.
+- lilt's real-time file watcher immediately picks up modifications without full re-indexing.
 - Gutter diffs, status badges, and open tabs reload live in the browser.
 
 ### 3. Line Comments & Hover Actions
@@ -85,18 +85,18 @@ The PR review bar above the editor tabs hosts the overall review summary and ver
 A PR checkout is a real git worktree, and the git panel works inside it exactly as it does in a plain workspace:
 - **Edit and commit**: Make a change (by hand, or by dispatching a coding agent on the checkout), stage it, and either write a commit message yourself or click **Commit with AI**.
 - **Push**: Sends the checkout's `HEAD` to the pull request's *actual* head branch on its actual repository — a fork included — not wherever the checkout happens to live locally.
-- **Pull**: Re-fetches the PR's current head. If new commits landed on it since you opened the review and your checkout can fast-forward onto them cleanly, px0 updates the worktree and refreshes the diff, the PR bar, and the comments panel automatically. If your checkout has diverged — you made local commits that aren't on the PR head yet, or the head was force-pushed — px0 refuses with a clear message rather than merging; commit and push first, or resolve it in a terminal.
+- **Pull**: Re-fetches the PR's current head. If new commits landed on it since you opened the review and your checkout can fast-forward onto them cleanly, lilt updates the worktree and refreshes the diff, the PR bar, and the comments panel automatically. If your checkout has diverged — you made local commits that aren't on the PR head yet, or the head was force-pushed — lilt refuses with a clear message rather than merging; commit and push first, or resolve it in a terminal.
 
 > [!IMPORTANT]
-> A PR checkout lives in a temporary directory for the life of the px0 process (see [Multi-Session Isolation](#multi-session-isolation) below). Any edits you make there — committed or not — are gone once the session closes, unless you've pushed them back to the PR's branch first.
+> A PR checkout lives in a temporary directory for the life of the lilt process (see [Multi-Session Isolation](#multi-session-isolation) below). Any edits you make there — committed or not — are gone once the session closes, unless you've pushed them back to the PR's branch first.
 
 ---
 
 ## Authentication & Read-Only Review
 
-px0 discovers forge credentials in the following order:
+lilt discovers forge credentials in the following order:
 
-1. **`github.token`** in px0 Settings (`Cmd/Ctrl+,` → GitHub, or `~/.px0/settings.json`).
+1. **`github.token`** in lilt Settings (`Cmd/Ctrl+,` → GitHub, or `~/.lilt/settings.json`).
 2. **`GITHUB_TOKEN`** environment variable.
 3. **`GH_TOKEN`** environment variable.
 4. **`gh auth token`** via the GitHub CLI if installed and authenticated.
@@ -114,7 +114,7 @@ If no token is configured:
 
 ## Extensible Forge Architecture (`GitProvider`)
 
-px0 abstracts forge interactions through a clean, minimal `GitProvider` interface in [`provider.go`](file:///home/arpit/workspace/px0/px0/provider.go):
+lilt abstracts forge interactions through a clean, minimal `GitProvider` interface in [`provider.go`](file:///home/arpit/workspace/lilt/lilt/provider.go):
 - **Provider Detection**: Matches input URLs against registered providers (GitHub, and in the future GitLab, Bitbucket, etc.).
 - **Normalized Metadata**: Maps forge-specific PR/MR objects to standard `PRMeta` structures.
 - **Push Access & Token Discovery**: Isolates provider-specific authentication mechanisms.

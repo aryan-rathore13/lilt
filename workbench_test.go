@@ -28,12 +28,12 @@ func TestWorkbenchItemIDsAreStable(t *testing.T) {
 	if a.ID != b.ID || len(a.ID) != 12 {
 		t.Fatalf("dir ids differ or wrong length: %q %q", a.ID, b.ID)
 	}
-	p1 := wbPRItem(PRTarget{Provider: "github", Owner: "Px0-AI", Repo: "px0", Number: 7, URL: "https://github.com/Px0-AI/px0/pull/7"})
-	p2 := wbPRItem(PRTarget{Provider: "github", Owner: "px0-ai", Repo: "PX0", Number: 7, URL: "https://github.com/px0-ai/px0/pull/7/files"})
+	p1 := wbPRItem(PRTarget{Provider: "github", Owner: "Aryan-Rathore13", Repo: "lilt", Number: 7, URL: "https://github.com/Aryan-Rathore13/lilt/pull/7"})
+	p2 := wbPRItem(PRTarget{Provider: "github", Owner: "aryan-rathore13", Repo: "LILT", Number: 7, URL: "https://github.com/aryan-rathore13/lilt/pull/7/files"})
 	if p1.ID != p2.ID {
 		t.Fatalf("same PR got different ids: %q %q", p1.ID, p2.ID)
 	}
-	if p1.ID == wbDirItem("px0-ai/px0#7").ID {
+	if p1.ID == wbDirItem("aryan-rathore13/lilt#7").ID {
 		t.Fatal("dir and PR ids must not collide")
 	}
 }
@@ -107,14 +107,14 @@ func TestRemoteMatchesRepo(t *testing.T) {
 		origin string
 		want   bool
 	}{
-		{"git@github.com:px0-ai/px0.git\n", true},
-		{"https://github.com/PX0-AI/px0", true},
-		{"ssh://git@github.com/px0-ai/px0.git", true},
-		{"https://github.com/px0-ai/px0-docs.git", false},
-		{"https://github.com/other/px0.git", false},
+		{"git@github.com:aryan-rathore13/lilt.git\n", true},
+		{"https://github.com/ARYAN-RATHORE13/lilt", true},
+		{"ssh://git@github.com/aryan-rathore13/lilt.git", true},
+		{"https://github.com/aryan-rathore13/lilt-docs.git", false},
+		{"https://github.com/other/lilt.git", false},
 	}
 	for _, c := range cases {
-		if got := remoteMatchesRepo(c.origin, "px0-ai", "px0"); got != c.want {
+		if got := remoteMatchesRepo(c.origin, "aryan-rathore13", "lilt"); got != c.want {
 			t.Errorf("%q: got %v", c.origin, got)
 		}
 	}
@@ -155,9 +155,9 @@ func TestLineWriterSplitsLinesAndSpinnerFrames(t *testing.T) {
 	var got []string
 	lw := &lineWriter{fn: func(s string) { got = append(got, s) }}
 	io.WriteString(lw, "one\r\ntw")
-	io.WriteString(lw, "o\n⠋ Cloning\r⠙ Cloning\rpx0-ready 127.0.0.1:1\nlast")
+	io.WriteString(lw, "o\n⠋ Cloning\r⠙ Cloning\rlilt-ready 127.0.0.1:1\nlast")
 	lw.Flush()
-	want := []string{"one", "two", "px0-ready 127.0.0.1:1", "last"}
+	want := []string{"one", "two", "lilt-ready 127.0.0.1:1", "last"}
 	if strings.Join(got, "|") != strings.Join(want, "|") {
 		t.Fatalf("got %q", got)
 	}
@@ -173,11 +173,11 @@ func TestWorkbenchResolveTarget(t *testing.T) {
 	if err != nil || it.Kind != "dir" || filepath.Base(it.Path) != "sub" {
 		t.Fatalf("relative dir: %+v %v", it, err)
 	}
-	it, err = wb.resolveTarget("https://github.com/px0-ai/px0/pull/12")
-	if err != nil || it.Kind != "pr" || it.Repo != "px0-ai/px0" || it.Number != 12 {
+	it, err = wb.resolveTarget("https://github.com/aryan-rathore13/lilt/pull/12")
+	if err != nil || it.Kind != "pr" || it.Repo != "aryan-rathore13/lilt" || it.Number != 12 {
 		t.Fatalf("pr: %+v %v", it, err)
 	}
-	for _, bad := range []string{"", "https://github.com/px0-ai/px0", filepath.Join(dir, "missing")} {
+	for _, bad := range []string{"", "https://github.com/aryan-rathore13/lilt", filepath.Join(dir, "missing")} {
 		if _, err := wb.resolveTarget(bad); err == nil {
 			t.Errorf("%q: want error", bad)
 		}
@@ -249,14 +249,14 @@ func TestWorkbenchUnknownWorkspace(t *testing.T) {
 	}
 }
 
-// End to end: a real px0 binary opened as a workspace, reached through the
+// End to end: a real lilt binary opened as a workspace, reached through the
 // workbench's proxy, then stopped through its stdin.
 func TestWorkbenchRunsChildThroughProxy(t *testing.T) {
 	if testing.Short() {
-		t.Skip("builds the px0 binary")
+		t.Skip("builds the lilt binary")
 	}
 	newTestStore(t)
-	exe := filepath.Join(t.TempDir(), "px0")
+	exe := filepath.Join(t.TempDir(), "lilt")
 	if out, err := exec.Command("go", "build", "-o", exe, ".").CombinedOutput(); err != nil {
 		t.Fatalf("build: %v\n%s", err, out)
 	}
@@ -353,8 +353,8 @@ func TestWorkbenchForgetsNewItemThatFails(t *testing.T) {
 	}
 	newTestStore(t)
 	dir := t.TempDir()
-	exe := filepath.Join(dir, "fake-px0")
-	os.WriteFile(exe, []byte("#!/bin/sh\necho 'px0: px0: github: fetch PR #9: 404 Not Found' >&2\nexit 1\n"), 0o755)
+	exe := filepath.Join(dir, "fake-lilt")
+	os.WriteFile(exe, []byte("#!/bin/sh\necho 'lilt: lilt: github: fetch PR #9: 404 Not Found' >&2\nexit 1\n"), 0o755)
 	wb := newWorkbench("/", dir, exe, nil)
 	defer wb.Close()
 
@@ -401,38 +401,38 @@ func gitRepoWithRemotes(t *testing.T, remotes map[string]string) string {
 
 func TestFindPRRemotePrefersOriginThenUpstream(t *testing.T) {
 	fork := gitRepoWithRemotes(t, map[string]string{
-		"origin":   "git@github.com:me/px0.git",
-		"upstream": "https://github.com/px0-ai/px0.git",
+		"origin":   "git@github.com:me/lilt.git",
+		"upstream": "https://github.com/aryan-rathore13/lilt.git",
 	})
-	if top, remote := findPRRemote(fork, "px0-ai", "px0"); top != fork || remote != "upstream" {
+	if top, remote := findPRRemote(fork, "aryan-rathore13", "lilt"); top != fork || remote != "upstream" {
 		t.Fatalf("fork: %q %q", top, remote)
 	}
 	both := gitRepoWithRemotes(t, map[string]string{
-		"origin":   "https://github.com/px0-ai/px0",
-		"upstream": "https://github.com/px0-ai/px0.git",
+		"origin":   "https://github.com/aryan-rathore13/lilt",
+		"upstream": "https://github.com/aryan-rathore13/lilt.git",
 	})
-	if _, remote := findPRRemote(both, "px0-ai", "px0"); remote != "origin" {
+	if _, remote := findPRRemote(both, "aryan-rathore13", "lilt"); remote != "origin" {
 		t.Fatalf("both: %q", remote)
 	}
-	other := gitRepoWithRemotes(t, map[string]string{"origin": "https://github.com/px0-ai/px0-docs.git"})
-	if top, _ := findPRRemote(other, "px0-ai", "px0"); top != "" {
+	other := gitRepoWithRemotes(t, map[string]string{"origin": "https://github.com/aryan-rathore13/lilt-docs.git"})
+	if top, _ := findPRRemote(other, "aryan-rathore13", "lilt"); top != "" {
 		t.Fatalf("other repo matched: %q", top)
 	}
 }
 
 func TestScanForCloneFindsNestedClone(t *testing.T) {
 	root := t.TempDir()
-	clone := filepath.Join(root, "work", "px0")
-	os.MkdirAll(filepath.Join(root, "work", "node_modules", "px0"), 0o755)
+	clone := filepath.Join(root, "work", "lilt")
+	os.MkdirAll(filepath.Join(root, "work", "node_modules", "lilt"), 0o755)
 	if out, err := exec.Command("git", "init", "-q", clone).CombinedOutput(); err != nil {
 		t.Fatalf("%v %s", err, out)
 	}
-	exec.Command("git", "-C", clone, "remote", "add", "origin", "git@github.com:px0-ai/px0.git").Run()
+	exec.Command("git", "-C", clone, "remote", "add", "origin", "git@github.com:aryan-rathore13/lilt.git").Run()
 	want, _ := filepath.EvalSymlinks(clone)
-	if got := scanForClone(context.Background(), []string{root}, "px0-ai/px0"); got != want {
+	if got := scanForClone(context.Background(), []string{root}, "aryan-rathore13/lilt"); got != want {
 		t.Fatalf("got %q, want %q", got, want)
 	}
-	if got := scanForClone(context.Background(), []string{root}, "px0-ai/other"); got != "" {
+	if got := scanForClone(context.Background(), []string{root}, "aryan-rathore13/other"); got != "" {
 		t.Fatalf("found a clone of the wrong repo: %q", got)
 	}
 }
@@ -452,7 +452,7 @@ func postJSON(t *testing.T, h http.Handler, path, body string) *httptest.Respons
 func TestWorkbenchOpenPRAsksForClone(t *testing.T) {
 	newTestStore(t)
 	t.Setenv("HOME", t.TempDir()) // keep the scan away from real code folders
-	wb := newWorkbench("/", t.TempDir(), "/nonexistent/px0", nil)
+	wb := newWorkbench("/", t.TempDir(), "/nonexistent/lilt", nil)
 	defer wb.Close()
 	pr := "https://github.com/acme/widget/pull/5"
 

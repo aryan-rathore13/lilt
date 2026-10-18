@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// ProcessMetrics captures system resource usage of the px0 server process
+// ProcessMetrics captures system resource usage of the lilt server process
 // and any child language server processes.
 type ProcessMetrics struct {
 	RSSBytes     uint64  `json:"rssBytes"`     // Resident set size in bytes

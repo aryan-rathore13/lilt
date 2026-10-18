@@ -171,4 +171,3 @@ func TestLSPCloseDoc(t *testing.T) {
 	// Repeated closeDoc does not panic
 	cl.closeDoc("/test.go")
 }
-

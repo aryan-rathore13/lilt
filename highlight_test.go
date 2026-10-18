@@ -13,7 +13,7 @@ import (
 // the user when the background pass lands.
 func fixtures(t *testing.T) []string {
 	var files []string
-	root := os.Getenv("PX0_FIXTURES")
+	root := os.Getenv("LILT_FIXTURES")
 	if root == "" {
 		root = "."
 	}
@@ -354,4 +354,3 @@ func TestHighlightDiff(t *testing.T) {
 		t.Errorf("row 3 missing keyword or string class: %s", h.Rows[3].HTML)
 	}
 }
-

@@ -18,10 +18,10 @@ import (
 	"github.com/px0-ai/harness"
 )
 
-// Editing through a coding harness. px0 never authors a change itself: it
+// Editing through a coding harness. lilt never authors a change itself: it
 // composes an instruction anchored to a line range, hands it to a harness
 // already installed on this machine, and reloads whatever moved once that
-// harness exits. The harness edits; px0 stays the reader that knows exactly
+// harness exits. The harness edits; lilt stays the reader that knows exactly
 // when to look again.
 //
 // Harnesses are discovered and executed using github.com/px0-ai/harness.
@@ -300,7 +300,7 @@ func (m *agentManager) Select(name string, modelOpt ...string) error {
 	m.mu.Lock()
 	if m.pinned {
 		m.mu.Unlock()
-		return errors.New("px0 was started with -agent, so the harness is fixed for this run")
+		return errors.New("lilt was started with -agent, so the harness is fixed for this run")
 	}
 	m.mu.Unlock()
 
@@ -1120,7 +1120,7 @@ func (s *Server) handleAgentBatchEdit(w http.ResponseWriter, r *http.Request) {
 }
 
 // handleAgentJob is polled while an edit runs, once per in-flight compose box.
-// px0 dispatched the harness, so it knows when the work ended without
+// lilt dispatched the harness, so it knows when the work ended without
 // watching the filesystem for it. id=0 (or missing) means the most recently
 // started job.
 func (s *Server) handleAgentJob(w http.ResponseWriter, r *http.Request) {

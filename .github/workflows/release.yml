@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   build-and-release:
-    name: Build & Release px0
+    name: Build & Release lilt
     runs-on: ubuntu-latest
 
     steps:
@@ -28,7 +28,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24'
+          go-version-file: 'go.mod'
           cache: true
 
       - name: Setup Node.js
@@ -42,51 +42,30 @@ jobs:
 
       - name: Determine Version
         id: get_version
-        run: |
-          if [ -n "${{ github.event.inputs.version }}" ]; then
-            TAG="${{ github.event.inputs.version }}"
-          else
-            TAG="${GITHUB_REF#refs/tags/}"
-          fi
-          VER="${TAG#v}"
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-          echo "version=$VER" >> $GITHUB_OUTPUT
-          # Ensure VERSION file matches the release version
-          echo "$VER" > VERSION
-
-      - name: Build Cross-Platform Binaries
         env:
-          VERSION: ${{ steps.get_version.outputs.version }}
-          POSTHOG_KEY: ${{ secrets.POSTHOG_KEY }}
+          REQUESTED_VERSION: ${{ github.event.inputs.version }}
         run: |
-          mkdir -p dist
-          LDFLAGS="-s -w"
-          if [ -n "$POSTHOG_KEY" ]; then
-            LDFLAGS="$LDFLAGS -X main.posthogKey=$POSTHOG_KEY"
+          if [ -n "$REQUESTED_VERSION" ]; then
+            VER="${REQUESTED_VERSION#v}"
+          elif [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            VER="${GITHUB_REF#refs/tags/v}"
+          else
+            VER="$(tr -d ' \r\n' < VERSION)"
           fi
-          TARGETS="
-          linux/amd64 linux/arm64 linux/arm linux/386 linux/riscv64
-          darwin/amd64 darwin/arm64
-          windows/amd64 windows/arm64 windows/386
-          freebsd/amd64 freebsd/arm64 openbsd/amd64 openbsd/arm64 netbsd/amd64
-          "
-          for t in $TARGETS; do
-            os=${t%/*}
-            arch=${t#*/}
-            ext=""
-            [ "$os" = "windows" ] && ext=".exe"
-            name="px0-${VERSION}-${os}-${arch}${ext}"
-            printf "Building %-28s ... " "$name"
-            CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" \
-              go build -trimpath -ldflags="$LDFLAGS" -o "dist/$name" .
-            printf "done (%s)\n" "$(du -h "dist/$name" | cut -f1)"
-          done
+          if ! printf '%s\n' "$VER" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+([-.][A-Za-z0-9.-]+)?$'; then
+            echo "Invalid release version: $VER" >&2
+            exit 1
+          fi
+          TAG="v$VER"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+          # Ensure VERSION file matches the release version.
+          printf '%s\n' "$VER" > VERSION
 
-      - name: Generate Checksums
-        run: |
-          cd dist
-          sha256sum px0-* > checksums.txt
-          cat checksums.txt
+      - name: Build Cross-Platform Binaries and Checksums
+        env:
+          LILT_POSTHOG_KEY: ${{ secrets.LILT_POSTHOG_KEY }}
+        run: ./build.sh
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -97,5 +76,5 @@ jobs:
           prerelease: false
           generate_release_notes: true
           files: |
-            dist/px0-*
+            dist/lilt-*
             dist/checksums.txt

@@ -1,28 +1,23 @@
-/* Paper: a clean, high-contrast light palette.
-   Token reference and how to write your own theme: docs/internals/styling-and-themes.md. */
+/* Lilt: warm paper, quiet lilac, and clear, accessible code colours.
+   Token reference: docs/internals/styling-and-themes.md. */
 :root[data-theme="light"] {
-  --theme-name: "Paper";
+  --theme-name: "Lilt Light";
   color-scheme: light;
 
-  /* surfaces, from the editor out to raised hover states */
-  --bg: #ffffff; --bg2: #f7f8fa; --bg3: #edf0f5; --bg4: #e1e5ee;
-  /* text: primary, secondary, tertiary */
-  --fg: #24292f; --dim: #57606a; --faint: #8c959f;
-  /* borders and accent */
-  --line: #d0d7de; --accent: #0969da; --accent-fg: #0550ae;
-  /* selection, search matches, current line */
-  --sel: #b6e3ff; --mark: #fff8c5; --mark-active: #fae17d; --cur: #f3f6f9;
+  --bg: #fffefd; --bg2: #faf9f6; --bg3: #f0edf5; --bg4: #e7e1f0;
+  --fg: #23232b; --dim: #62616e; --faint: #767080;
+  --line: #e7e4e9; --accent: #7864be; --accent-fg: #6b52ad;
+  --sel: #e7def8; --mark: #fcf0c2; --mark-active: #ead47e; --cur: #f7f4fc;
   --on-mark-active: var(--fg);
-  /* elevation */
-  --shadow: 0 4px 16px rgba(31, 35, 40, 0.18);
+  --shadow: 0 12px 40px rgba(47, 36, 73, 0.1), 0 2px 6px rgba(47, 36, 73, 0.04);
+  --shadow-sm: 0 2px 8px rgba(47, 36, 73, 0.07);
+  --scrim: rgba(35, 35, 43, 0.24);
 
-  /* syntax */
-  --k: #cf222e; --kt: #0550ae; --nf: #8250df; --nc: #953800; --nb: #0550ae;
-  --nv: #953800; --no: #0550ae; --na: #0550ae; --nt: #116329; --nd: #8250df;
-  --np: #0550ae; --s: #0a3069; --m: #0550ae; --o: #cf222e; --p: #57606a;
-  --c: #6e7781; --cp: #cf222e; --err: #cf222e;
+  --k: #8a4f9b; --kt: #4566a0; --nf: #6c53aa; --nc: #a15f32; --nb: #4566a0;
+  --nv: #87552e; --no: #4566a0; --na: #4566a0; --nt: #37765f; --nd: #6c53aa;
+  --np: #4566a0; --s: #39765c; --m: #4566a0; --o: #8a4f9b; --p: #62616e;
+  --c: #78717f; --cp: #8a4f9b; --err: #b4425d;
 
-  /* diffs and status */
-  --gi: #116329; --gd: #82071e;
-  --gi-bg: rgba(17, 99, 41, 0.12); --gd-bg: rgba(130, 7, 30, 0.12);
+  --gi: #287451; --gd: #b4425d;
+  --gi-bg: rgba(40, 116, 81, 0.09); --gd-bg: rgba(180, 66, 93, 0.08);
 }

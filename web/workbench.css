@@ -120,3 +120,80 @@
 .wb-spin { width: 12px; height: 12px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: wb-spin 0.8s linear infinite; }
 @keyframes wb-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .wb-spin { animation: none; } }
+
+/* Lilt's quiet, paper-like starting place. */
+.wb-scroll { background: radial-gradient(ellipse at 50% 10%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 48%), var(--bg2); }
+.wb-nav { max-width: 1280px; margin: 0 auto; min-height: 92px; padding: 24px 40px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.wb-nav .lilt-mark { width: 29px; height: 29px; }
+.wb-nav .lilt-wordmark { font-size: 31px; }
+.wb-local { display: inline-flex; align-items: center; gap: 8px; color: var(--dim); font-size: 11px; }
+.wb-local > span { width: 6px; height: 6px; border-radius: 50%; background: var(--gi); box-shadow: 0 0 0 4px color-mix(in srgb, var(--gi) 8%, transparent); }
+.wb-main { max-width: 1080px; padding: 30px 40px 60px; }
+.wb-hero { margin-bottom: 34px; }
+.wb-eyebrow { margin: 0 0 20px; color: var(--accent-fg); font-size: 10px; font-weight: 650; letter-spacing: .13em; }
+.wb-hero h1 { margin: 0 0 22px; font-size: clamp(42px, 6vw, 68px); font-weight: 550; letter-spacing: -.065em; line-height: 1.05; color: var(--fg); }
+.wb-hero h1 > span { color: var(--accent); }
+.wb-tagline { color: var(--dim); font-size: 14px; line-height: 1.8; }
+.wb-open-label { margin: 0 auto 10px; max-width: 860px; font-size: 12px; font-weight: 550; color: var(--dim); }
+.wb-main > .wb-open { max-width: 860px; margin: 0 auto; gap: 10px; }
+.wb-field input { padding: 17px 18px; border-radius: 10px; background: var(--bg); font-size: 12px; box-shadow: var(--shadow-sm); text-overflow: ellipsis; }
+.wb-field input::placeholder { color: var(--faint); opacity: 1; }
+.wb-field input:focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent); outline: none; }
+.wb-btn { padding: 8px 12px; border-radius: 7px; font-size: 11px; }
+.wb-main > .wb-open > .wb-btn { justify-content: center; padding: 13px 20px; gap: 16px; border-radius: 10px; font-weight: 550; font-size: 12px; box-shadow: var(--shadow-sm); }
+.wb-main > .wb-open > .wb-btn > span { font-size: 18px; font-weight: 400; }
+.wb-keys { max-width: 860px; margin: 12px auto 0; font-size: 10px; text-align: center; }
+.wb-keys kbd { background: var(--bg); border-radius: 4px; margin-right: 2px; font-size: 9px; padding: 2px 4px; }
+.wb-msg { max-width: 860px; margin: 14px auto 0; }
+.wb-cols { grid-template-columns: 1fr 1.15fr; gap: 20px; margin-top: 44px; }
+.wb-panel { background: var(--bg); border-radius: 13px; overflow: hidden; box-shadow: 0 2px 4px color-mix(in srgb, var(--fg) 2%, transparent); }
+.wb-panel .panel-head { min-height: 54px; padding: 14px 18px; gap: 12px; font-size: 12px; font-weight: 550; letter-spacing: -.015em; text-transform: none; color: var(--fg); }
+.wb-panel .panel-actions { min-width: 0; }
+.wb-panel .wb-link { max-width: 130px; font-size: 10px; }
+.wb-check { font-size: 10px; white-space: nowrap; }
+.wb-crumbs { min-height: 50px; padding: 10px 12px; gap: 8px; background: var(--bg2); }
+.wb-crumbs .wb-btn { padding: 6px 8px; font-size: 10px; }
+.wb-path { font-size: 10px; }
+.wb-list { padding: 6px; max-height: 340px; }
+.wb-row { min-height: 45px; padding: 9px 12px; border-radius: 7px; gap: 12px; font-size: 12px; }
+.wb-row .wb-sub { margin-top: 3px; font-size: 10px; }
+.wb-row .wb-when { font-size: 10px; }
+.wb-row .wb-ico { color: var(--accent-fg); }
+.wb-empty { padding: 48px 28px; font-size: 12px; line-height: 1.8; text-align: center; max-width: 330px; margin: 0 auto; }
+.wb-clone { margin-top: 20px; padding: 20px; }
+.wb-clone .wb-field input { padding: 12px; }
+.wb-suggest { background: var(--bg); padding: 6px; border-radius: 10px; }
+.wb-suggest li { border-radius: 5px; padding: 9px 10px; }
+.wb-menu { background: var(--bg); padding: 6px; }
+.wb-menu li { border-radius: 5px; padding: 8px 10px; }
+.wb-status { padding-inline: 16px !important; }
+.wb-status .side-logo { padding-right: 6px; }
+.wb-status .status-ver { font-size: 10px; }
+@media (prefers-reduced-motion: no-preference) {
+  .wb-hero, .wb-open-label, .wb-main > .wb-open, .wb-keys, .wb-cols { animation: lilt-surface-in .45s ease-out both; }
+  .wb-main > .wb-open { animation-delay: .05s; }
+  .wb-cols { animation-delay: .12s; }
+}
+@media (max-width: 760px) {
+  .wb-nav { min-height: 80px; padding: 20px 24px; }
+  .wb-main { padding: 24px 24px 40px; }
+  .wb-hero { margin-bottom: 30px; }
+  .wb-hero h1 { font-size: 56px; }
+  .wb-cols { grid-template-columns: 1fr; gap: 18px; margin-top: 32px; }
+  .wb-list { max-height: 300px; }
+  .wb-panel .wb-link { max-width: 180px; }
+}
+@media (max-width: 480px) {
+  .wb-nav { padding-inline: 20px; }
+  .wb-local { font-size: 10px; }
+  .wb-main { padding: 24px 18px 32px; }
+  .wb-eyebrow { font-size: 8px; letter-spacing: .1em; }
+  .wb-hero h1 { font-size: 47px; }
+  .wb-tagline { font-size: 12px; }
+  .wb-wide-br { display: none; }
+  .wb-main > .wb-open { flex-direction: column; gap: 10px; }
+  .wb-field input { font-size: 11px; padding: 15px 12px; }
+  .wb-main > .wb-open > .wb-btn { align-self: stretch; padding: 11px 16px; }
+  .wb-clone-actions { flex-wrap: wrap; }
+  .wb-clone-dest { flex-basis: 100%; order: 1; }
+}

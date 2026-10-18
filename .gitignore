@@ -1,7 +1,7 @@
 dist/
 bench-repos/
-px0
-px0.exe
+lilt
+lilt.exe
 *.test
 *.prof
 
@@ -26,4 +26,13 @@ web/vendor/*.min.js.gz
 
 # Logs
 *.log
-px0
+lilt
+
+# Landing builds and provider-local settings
+site/dist/
+.vercel/
+.env
+.env.*
+!.env.example
+.vercel
+.env*

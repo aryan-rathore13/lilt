@@ -1,0 +1,9 @@
+.git
+dist
+lilt
+*.test
+*.prof
+site/dist
+bench-repos
+.env*
+.vercel

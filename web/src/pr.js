@@ -1,5 +1,5 @@
 // web/src/pr.js
-// GitHub PR review: shown only when this process was launched as `px0 pr ...`
+// GitHub PR review: shown only when this process was launched as `lilt pr ...`
 // (S.meta.pr, set by main.go/pr.go). A persistent bar above the tabs shows
 // the PR and hosts Approve/Request Changes/Comment; selecting a diff line and
 // pressing Alt+R (or the footer/context-menu action) drafts an inline review
@@ -787,8 +787,8 @@ function renderCommentsPanel() {
 /* ---------- launching another PR from a running session ---------- */
 
 // Called from palette.js's "Git: Open Pull Request..." command. Fire and
-// forget: the server re-execs a brand new px0 process (pr.go's
-// handleLaunchPR), which opens its own browser tab the same way any px0
+// forget: the server re-execs a brand new lilt process (pr.go's
+// handleLaunchPR), which opens its own browser tab the same way any lilt
 // invocation does. A failed checkout only ever shows in that child's own
 // terminal, not here -- see docs/internals/github-pr-review.md.
 export async function launchPR(target) {
@@ -802,7 +802,7 @@ export async function launchPR(target) {
 }
 
 // Inside the workbench the PR becomes one more workspace there, in a new tab,
-// instead of a separate px0 on its own port. The tab is opened before the
+// instead of a separate lilt on its own port. The tab is opened before the
 // request so the browser still counts it as the user's own action.
 async function launchPRInWorkbench(target) {
   const tab = window.open('about:blank', '_blank');

@@ -5,7 +5,7 @@
    so they outrank these defaults regardless of load order. See docs/internals/styling-and-themes.md. */
 :root {
   --lh: 21px;
-  --mono: "JetBrains Mono", "Fira Code", "Cascadia Code", "SF Mono", Menlo, Consolas, ui-monospace, monospace;
+  --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, ui-monospace, monospace;
   --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --fs: 13.5px;
 
@@ -15,10 +15,12 @@
   --scrim: rgba(0, 0, 0, 0.45);
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.28);
 
-  /* Two-step radius scale, near-flat: controls get the smaller step, floating
-     containers (menus, dialogs, popovers) the larger one. Nothing else. */
-  --r: 2px;
-  --r-lg: 4px;
+  /* Compact controls and softly rounded floating surfaces. */
+  --r: 6px;
+  --r-lg: 12px;
+  --border: var(--line); --bg1: var(--bg);
+  --bg-hover: var(--bg3); --bg-active: var(--bg4);
+  --font-mono: var(--mono);
 
   --kt: var(--k); --nc: var(--nf); --nb: var(--nf); --nv: var(--fg); --no: var(--m);
   --na: var(--nf); --nt: var(--k); --nd: var(--k); --np: var(--fg); --o: var(--fg);
@@ -48,7 +50,7 @@ input { font: inherit; color: inherit; background: none; border: 0; outline: 0; 
 
 /* ---------- sidebar ---------- */
 #side {
-  width: 340px; flex: none; background: var(--bg2); border-right: 1px solid var(--line);
+  width: 312px; flex: none; background: var(--bg2); border-right: 1px solid var(--line);
   display: flex; flex-direction: column; overflow: hidden;
 }
 body.side-hidden #side, body.side-hidden #resizer { display: none; }
@@ -117,7 +119,7 @@ body.side-hidden #side, body.side-hidden #resizer { display: none; }
 .panel-body { flex: 1; overflow: auto; padding-bottom: 16px; }
 /* Version and theme, level with the status bar beside it. */
 .side-foot {
-  flex: none; height: 24px; display: flex; align-items: center; gap: 6px;
+  flex: none; height: 32px; display: flex; align-items: center; gap: 6px;
   padding: 0 8px; border-top: 1px solid var(--line);
 }
 .side-foot .mini svg { display: block; }
@@ -131,7 +133,7 @@ body.side-hidden #side, body.side-hidden #resizer { display: none; }
 /* ---------- tree ---------- */
 .tw { display: block; }
 .tr {
-  display: flex; align-items: center; gap: 5px; height: 22px; padding-right: 8px;
+  display: flex; align-items: center; gap: 5px; height: 26px; padding-right: 8px;
   white-space: nowrap; cursor: pointer; user-select: none; font-size: 12.5px;
 }
 .tr:hover { background: var(--bg3); }
@@ -659,13 +661,13 @@ a.cc-who:hover { color: var(--accent-fg); }
 
 /* ---------- right-side inspector ---------- */
 #right-side {
-  width: 384px; flex: none; background: var(--bg2); border-left: 1px solid var(--line);
+  width: 344px; flex: none; background: var(--bg2); border-left: 1px solid var(--line);
   display: flex; flex-direction: column; overflow: hidden;
 }
 body.right-hidden #right-side, body.right-hidden #right-resizer { display: none; }
 
 .inspector-head {
-  height: 35px; flex: none; display: flex; align-items: center; justify-content: space-between;
+  height: 40px; flex: none; display: flex; align-items: center; justify-content: space-between;
   padding: 0 8px 0 12px; border-bottom: 1px solid var(--line);
 }
 .inspector-tabs { display: flex; gap: 2px; min-width: 0; }
@@ -715,7 +717,7 @@ body.right-hidden #tabs { padding-right: 38px; }
 body.right-hidden.md-tab #tabs { padding-right: 178px; }
 body.right-hidden.diff-tab #tabs { padding-right: 188px; }
 body.right-hidden.md-tab.diff-tab #tabs { padding-right: 328px; }
-#view-switches { position: absolute; top: 3px; right: 8px; z-index: 7; display: flex; gap: 6px; }
+#view-switches { position: absolute; top: 9px; right: 8px; z-index: 7; display: flex; gap: 6px; }
 .view-switch {
   height: 22px; display: flex; gap: 1px;
   padding: 1px; background: var(--bg3); border: 1px solid var(--line); border-radius: var(--r);
@@ -793,14 +795,14 @@ body.diff-tab #tabs { padding-right: 150px; }
 body.md-tab.diff-tab #tabs { padding-right: 290px; }
 body.editing-file #tabs { padding-right: 180px; }
 
-#tabs { display: flex; height: 28px; background: var(--bg2); box-shadow: inset 0 -1px 0 var(--line); overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+#tabs { display: flex; height: 40px; background: var(--bg2); box-shadow: inset 0 -1px 0 var(--line); overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
 #tabs::-webkit-scrollbar { display: none; }
 #tabs:empty { display: none; }
 .tab {
   display: flex; align-items: center; gap: 6px; padding: 0 8px 0 10px; flex: none;
   border-right: 1px solid var(--line); color: var(--dim); cursor: pointer;
   font-size: 11.5px; max-width: 200px; position: relative; user-select: none;
-  line-height: 28px; height: 28px;
+  line-height: 40px; height: 40px;
   box-shadow: inset 0 -1px 0 var(--line);
   transition: background .1s ease, color .1s ease;
 }
@@ -1418,16 +1420,6 @@ body.word-wrap .editview-gutter { white-space: normal; }
 .empty-inner { text-align: center; color: var(--faint); }
 .empty-logo { display: flex; justify-content: center; align-items: flex-end; gap: 10px; margin-bottom: 28px; }
 .empty-logo img { width: 130px; height: auto; }
-/* Logo variants: the dark one by default, the light one on light themes. */
-.logo-light { display: none; }
-:root[data-theme="light"] .logo-dark,
-:root[data-theme="catppuccin-latte"] .logo-dark,
-:root[data-theme="gruvbox-light"] .logo-dark,
-:root[data-theme="solarized-light"] .logo-dark { display: none; }
-:root[data-theme="light"] .logo-light,
-:root[data-theme="catppuccin-latte"] .logo-light,
-:root[data-theme="gruvbox-light"] .logo-light,
-:root[data-theme="solarized-light"] .logo-light { display: block; }
 .empty-inner dl { display: grid; grid-template-columns: auto auto; gap: 9px 16px; align-items: center; font-size: 12.5px; }
 .empty-inner dt { text-align: right; display: flex; gap: 3px; justify-content: flex-end; }
 .empty-inner dd { margin: 0; text-align: left; color: var(--dim); }
@@ -1706,7 +1698,7 @@ kbd {
 }
 
 /* ---------- status ---------- */
-#status { height: 24px; flex: none; display: flex; align-items: center; gap: 12px; padding: 0 10px; background: var(--bg2); border-top: 1px solid var(--line); font: 11px var(--mono); color: var(--faint); user-select: none; white-space: nowrap; overflow: hidden; }
+#status { height: 32px; flex: none; display: flex; align-items: center; gap: 12px; padding: 0 10px; background: var(--bg2); border-top: 1px solid var(--line); font: 11px var(--mono); color: var(--faint); user-select: none; white-space: nowrap; overflow: hidden; }
 /* Nothing shrinks or wraps: an overflowing bar is what tells fitStatus() to shed detail. */
 #status > * { flex: none; }
 #status > .grow { flex: 1; }
@@ -3077,3 +3069,80 @@ body.hide-git-gutter .g-git, body.hide-git-gutter [class*="git-"] { display: non
 .thr-scope button.active { color: var(--accent-fg); border-color: var(--accent); background: var(--bg2); }
 .thr-scope button:disabled { opacity: .4; cursor: default; }
 .thr-compose { display: flex; flex-direction: column; gap: 6px; padding: 8px 12px; border-top: 1px solid var(--line); }
+
+/* ---------- Lilt workspace ---------- */
+.lilt-brand { display: inline-flex; align-items: center; gap: 9px; color: var(--fg); text-decoration: none; }
+.lilt-mark { flex: none; color: var(--accent); }
+.lilt-wordmark { color: var(--fg); font: 650 30px/1 var(--ui); letter-spacing: -.065em; }
+.workspace-brand { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 68px; padding: 14px 18px; border-bottom: 1px solid var(--line); flex: none; }
+.workspace-brand .lilt-mark { width: 27px; height: 27px; }
+.workspace-brand .lilt-wordmark { font-size: 27px; }
+.workspace-label { font-size: 10px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--faint); border: 1px solid var(--line); padding: 4px 7px; border-radius: 5px; }
+#side > .panel-head { min-height: 44px; letter-spacing: .025em; text-transform: none; color: var(--dim); }
+#side > .panel-head #root-name { font-size: 12px; font-weight: 600; }
+.tr { margin: 1px 6px; border-radius: 5px; }
+.side-foot { padding: 0 10px; }
+.side-logo { gap: 3px; text-decoration: none; }
+.side-logo .lilt-mark { width: 16px; height: 16px; }
+.side-logo .lilt-wordmark { font-size: 17px; }
+.inspector-head { padding-inline: 14px 8px; }
+.inspector-tab { padding: 5px 9px; }
+#tabs { padding-left: 6px; gap: 2px; align-items: center; }
+.tab { border-right: 0; margin-top: 4px; height: 36px; line-height: 36px; padding-inline: 12px 9px; border-radius: 7px 7px 0 0; font-size: 12px; }
+.tab.active { box-shadow: 0 -2px 0 var(--accent) inset; }
+#empty { padding: 24px; overflow: auto; background: radial-gradient(ellipse at 50% 30%, color-mix(in srgb, var(--accent) 5%, transparent), transparent 65%), var(--bg); }
+.empty-inner { width: min(100%, 420px); margin: auto; }
+.empty-logo { align-items: center; gap: 10px; margin-bottom: 28px; }
+.empty-logo .lilt-mark { width: 44px; height: 44px; }
+.empty-logo .lilt-wordmark { font-size: 48px; }
+.empty-eyebrow { margin: 0 0 10px; color: var(--accent-fg); font-size: 9px; font-weight: 600; letter-spacing: .15em; }
+.empty-title { margin: 0; color: var(--fg); font-size: clamp(22px, 3vw, 30px); line-height: 1.3; font-weight: 550; letter-spacing: -.04em; }
+.empty-copy { margin: 10px 0 28px; color: var(--dim); font-size: 12px; }
+.empty-inner dl { margin: 0 auto; width: fit-content; padding: 20px 24px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg2); gap: 8px 18px; font-size: 11.5px; }
+.empty-inner dt { align-items: center; }
+.empty-inner kbd { font-size: 10px; padding: 3px 5px; background: var(--bg); }
+#empty-ver { align-self: flex-end; margin-bottom: 7px; font-size: 10px; }
+#palette { background: var(--bg); }
+.pal-input { min-height: 64px; }
+#pal-list { padding-block: 6px; }
+#pal-hint { background: var(--bg2); }
+.pi { padding-block: 9px; }
+#hovercard, #commitcard, #metrics-menu, #lsp-menu, #tree-menu, #sel-menu { box-shadow: var(--shadow); }
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+button:disabled { cursor: not-allowed; }
+@media (prefers-reduced-motion: no-preference) {
+  .mini, .footer-btn, .inspector-tab, .tr, .wb-btn { transition: background .16s ease, color .16s ease, border-color .16s ease; }
+  #palette, .help-card, .fs-modal-card, .settings-dialog { animation: lilt-surface-in .18s ease-out; }
+  .empty-inner { animation: lilt-surface-in .4s ease-out; }
+}
+@keyframes lilt-surface-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+@media (max-width: 1100px) {
+  #side { width: 280px; }
+  #right-side { width: 300px; }
+  .workspace-brand { padding-inline: 14px; }
+  .empty-inner dl { padding: 16px; }
+}
+
+.mobile-nav, .mobile-drawer-shade { display: none; }
+@media (max-width: 720px) {
+  .mobile-nav { position: fixed; inset: 0 0 auto; z-index: 60; height: 46px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); background: var(--bg2); }
+  .mobile-nav .lilt-wordmark { font-size: 25px; }
+  .mobile-nav button { font-size: 11px; padding: 6px 9px; color: var(--dim); border-radius: var(--r); }
+  .mobile-nav button[aria-expanded="true"] { color: var(--accent-fg); background: var(--bg3); }
+  #app { margin-top: 46px; height: calc(100vh - 46px); height: calc(100dvh - 46px); }
+  #side, #right-side { position: fixed; z-index: 55; top: 46px; bottom: 0; width: min(344px, calc(100vw - 42px)) !important; box-shadow: var(--shadow); }
+  #side { left: 0; }
+  #right-side { right: 0; }
+  #resizer, #right-resizer { display: none; }
+  .mobile-drawer-shade { position: fixed; inset: 46px 0 0; z-index: 50; background: var(--scrim); width: 100%; }
+  body:not(.side-hidden) .mobile-drawer-shade, body:not(.right-hidden) .mobile-drawer-shade { display: block; }
+  .empty-title { font-size: 26px; }
+  .empty-inner dl { padding: 18px; }
+  .tab { max-width: 160px; }
+  #findbar { right: 8px; max-width: calc(100% - 16px); }
+  #find-input { width: 130px; min-width: 0; }
+  #find-count { min-width: 3em; }
+}

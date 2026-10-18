@@ -16,8 +16,8 @@ func TestSettingsDefaults(t *testing.T) {
 	if m["editor.fontSize"] != 13.5 {
 		t.Errorf("expected editor.fontSize 13.5, got %v", m["editor.fontSize"])
 	}
-	if m["workbench.colorTheme"] != "catppuccin-mocha" {
-		t.Errorf("expected workbench.colorTheme catppuccin-mocha, got %v", m["workbench.colorTheme"])
+	if m["workbench.colorTheme"] != "light" {
+		t.Errorf("expected workbench.colorTheme light, got %v", m["workbench.colorTheme"])
 	}
 	if m["editor.wordWrap"] != "on" {
 		t.Errorf("expected editor.wordWrap on, got %v", m["editor.wordWrap"])
@@ -143,7 +143,7 @@ func TestSettingsPreserveNonAgentValues(t *testing.T) {
 	}
 
 	// Step 4: Verify file on disk
-	data, err := os.ReadFile(filepath.Join(cfg, "px0", "settings.json"))
+	data, err := os.ReadFile(filepath.Join(cfg, "lilt", "settings.json"))
 	if err != nil {
 		t.Fatalf("failed to read settings file: %v", err)
 	}
@@ -178,7 +178,7 @@ func TestSettingsAPIEndpoints(t *testing.T) {
 
 	// 2. POST /api/settings with key/value updates
 	payload := map[string]any{
-		"editor.tabSize":       2,
+		"editor.tabSize":              2,
 		"diffEditor.renderSideBySide": false,
 	}
 	b, _ := json.Marshal(payload)
@@ -265,4 +265,3 @@ func TestSettingsBasePath(t *testing.T) {
 		t.Errorf("expected ServerBasePath /rev-456/ from fallback, got %v", s.ServerBasePath)
 	}
 }
-

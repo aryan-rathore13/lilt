@@ -49,7 +49,7 @@ type TelemetryService struct {
 // isOptedOut checks common opt-out indicators:
 // - CLI flag --no-telemetry
 // - Environment variable DO_NOT_TRACK=1
-// - Environment variable PX0_TELEMETRY=0 / false / off / no
+// - Environment variable LILT_TELEMETRY=0 / false / off / no
 func isOptedOut(flagNoTelemetry bool) bool {
 	if flagNoTelemetry {
 		return true
@@ -57,7 +57,7 @@ func isOptedOut(flagNoTelemetry bool) bool {
 	if os.Getenv("DO_NOT_TRACK") == "1" {
 		return true
 	}
-	v := strings.ToLower(strings.TrimSpace(os.Getenv("PX0_TELEMETRY")))
+	v := strings.ToLower(strings.TrimSpace(os.Getenv("LILT_TELEMETRY")))
 	if v == "0" || v == "false" || v == "off" || v == "no" {
 		return true
 	}
@@ -86,11 +86,11 @@ func filesBucket(n int) string {
 }
 
 // getOrGenerateDistinctID retrieves or initializes a persistent anonymous UUID.
-// Saved to ~/.px0/anonymous_id. If writing fails, an ephemeral ID is returned.
+// Saved to ~/.lilt/anonymous_id. If writing fails, an ephemeral ID is returned.
 func getOrGenerateDistinctID() string {
 	home, err := os.UserHomeDir()
 	if err == nil && home != "" {
-		idPath := filepath.Join(home, ".px0", "anonymous_id")
+		idPath := filepath.Join(home, ".lilt", "anonymous_id")
 		if data, err := os.ReadFile(idPath); err == nil {
 			id := strings.TrimSpace(string(data))
 			if len(id) >= 16 {
@@ -101,12 +101,12 @@ func getOrGenerateDistinctID() string {
 
 	b := make([]byte, 16)
 	if _, err := rand.Read(b); err != nil {
-		return fmt.Sprintf("px0-%d", time.Now().UnixNano())
+		return fmt.Sprintf("lilt-%d", time.Now().UnixNano())
 	}
 	id := hex.EncodeToString(b)
 
 	if home, err := os.UserHomeDir(); err == nil && home != "" {
-		dir := filepath.Join(home, ".px0")
+		dir := filepath.Join(home, ".lilt")
 		if err := os.MkdirAll(dir, 0755); err == nil {
 			_ = os.WriteFile(filepath.Join(dir, "anonymous_id"), []byte(id), 0644)
 		}
@@ -130,11 +130,11 @@ func generateUUID() string {
 // NewTelemetryService creates and starts a background telemetry worker.
 func NewTelemetryService(flagNoTelemetry bool) *TelemetryService {
 	key := strings.TrimSpace(posthogKey)
-	if envKey := strings.TrimSpace(os.Getenv("PX0_POSTHOG_KEY")); envKey != "" {
+	if envKey := strings.TrimSpace(os.Getenv("LILT_POSTHOG_KEY")); envKey != "" {
 		key = envKey
 	}
 
-	host := strings.TrimRight(strings.TrimSpace(os.Getenv("PX0_POSTHOG_HOST")), "/")
+	host := strings.TrimRight(strings.TrimSpace(os.Getenv("LILT_POSTHOG_HOST")), "/")
 	if host == "" {
 		host = defaultPostHogHost
 	}
@@ -177,7 +177,7 @@ func (t *TelemetryService) Track(event string, props map[string]any) {
 	// Enrich with standard PostHog environment and session properties
 	props["distinct_id"] = t.distinctID
 	props["$session_id"] = t.sessionID
-	props["$lib"] = "px0"
+	props["$lib"] = "lilt"
 	props["$lib_version"] = version
 	props["$os"] = runtime.GOOS
 	props["$arch"] = runtime.GOARCH
@@ -214,7 +214,7 @@ func (t *TelemetryService) Close(reason string) {
 		props := map[string]any{
 			"distinct_id":      t.distinctID,
 			"$session_id":      t.sessionID,
-			"$lib":             "px0",
+			"$lib":             "lilt",
 			"$lib_version":     version,
 			"$os":              runtime.GOOS,
 			"$arch":            runtime.GOARCH,
@@ -255,7 +255,7 @@ func (t *TelemetryService) worker() {
 }
 
 func (t *TelemetryService) send(evt telemetryEvent) {
-	debug := os.Getenv("PX0_TELEMETRY_DEBUG") == "1"
+	debug := os.Getenv("LILT_TELEMETRY_DEBUG") == "1"
 
 	payload := map[string]any{
 		"api_key":    t.apiKey,
@@ -280,7 +280,7 @@ func (t *TelemetryService) send(evt telemetryEvent) {
 		return
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "px0/"+version)
+	req.Header.Set("User-Agent", "lilt/"+version)
 
 	resp, err := t.client.Do(req)
 	if err != nil {

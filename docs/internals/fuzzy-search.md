@@ -1,6 +1,6 @@
 # Fuzzy Path Matching Engine
 
-This document describes the algorithms, scoring heuristics, and concurrency strategies behind px0's ultra-fast fuzzy file finder ([`fuzzy.go`](../../fuzzy.go)).
+This document describes the algorithms, scoring heuristics, and concurrency strategies behind lilt's ultra-fast fuzzy file finder ([`fuzzy.go`](../../fuzzy.go)).
 
 ## 1. The Fuzzy Matching Challenge
 
@@ -8,7 +8,7 @@ Traditional fuzzy matchers (such as Smith-Waterman or Needleman-Wunsch dynamic p
 
 Conversely, naive greedy linear scans run in $O(N)$ time but frequently produce poor match clusters, matching the earliest available character rather than the tightest and most intuitive run.
 
-px0 solves this with a Two-Pass Bounded Search Algorithm:
+lilt solves this with a Two-Pass Bounded Search Algorithm:
 
 - It achieves the clustering and ranking accuracy of dynamic programming.
 - It operates strictly in $O(N)$ linear time without intermediate allocations.
@@ -77,7 +77,7 @@ func isBoundary(b byte) bool {
 
 ## 4. Multi-Core Parallel Query Slicing
 
-For smaller repositories (<4,000 files), single-threaded execution easily completes in under 1 ms. However, when navigating repositories like Kubernetes or the Linux Kernel (25,000-100,000 files), query evaluation is automatically partitioned across CPU cores.
+Small repositories can be evaluated in a single pass. For larger repositories such as Kubernetes or the Linux kernel, query evaluation is partitioned across CPU cores. Actual latency depends on repository size and hardware; see [historical upstream measurements](../../BENCHMARKS.md).
 
 ```go
 func (ix *Index) Find(q string, limit int) []FuzzyResult {

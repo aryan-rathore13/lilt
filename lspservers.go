@@ -13,7 +13,7 @@ import (
 )
 
 // lspServerDef describes one language server we know how to drive. Nothing here
-// is required for px0 to work; a server is used only if its binary is found on
+// is required for lilt to work; a server is used only if its binary is found on
 // PATH or in one of the folders installers commonly use (lspBinDirs).
 type lspServerDef struct {
 	Name        string
@@ -260,8 +260,8 @@ func (m *lspManager) isDiscovered() bool {
 }
 
 // lspBinDirs lists folders installers put binaries in that are often missing
-// from PATH, so a server installed from px0, or by hand after px0 started, is
-// found without restarting the shell px0 was launched from.
+// from PATH, so a server installed from lilt, or by hand after lilt started, is
+// found without restarting the shell lilt was launched from.
 func lspBinDirs() []string {
 	var dirs []string
 	add := func(elem ...string) { dirs = append(dirs, filepath.Join(elem...)) }
@@ -305,7 +305,7 @@ func lspBinDirs() []string {
 // binDirCacheTTL bounds how long the binary caches trust their snapshot. The
 // directories come from env vars and an npm probe, and ServerStatus re-resolves
 // every installed binary and install-tool on each status refresh, so uncached
-// lookups are pure repeated I/O on a hot path. 30s keeps "installed after px0
+// lookups are pure repeated I/O on a hot path. 30s keeps "installed after lilt
 // started" discovery working while cutting the steady state cost to zero.
 const binDirCacheTTL = 30 * time.Second
 
@@ -467,7 +467,7 @@ func (m *lspManager) State(rel string) (lspState, string) {
 	}
 	if def == nil {
 		// Discovery runs in the background at startup. Until it finishes, a
-		// file type px0 knows may still get a server, so keep the UI asking.
+		// file type lilt knows may still get a server, so keep the UI asking.
 		if enabled && !discovered && len(registryFor(rel)) > 0 {
 			return lspStarting, ""
 		}

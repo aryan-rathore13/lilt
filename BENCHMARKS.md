@@ -1,8 +1,12 @@
-# Performance Benchmarks & Methodology
+# Historical upstream benchmarks and Lilt reproduction guide
+
+> **Attribution and scope:** The numerical results, editor comparisons, and example measurements below were inherited from [px0 by Arpit Bhayani](https://github.com/px0-ai/px0/blob/master/BENCHMARKS.md), under its [MIT license](LICENSE). They describe upstream px0 builds and their test environments, not a fresh benchmark of Lilt. The original `px0` labels are retained wherever they identify historical measurements. Lilt's branding release has not reproduced these results. Hardware, browser, repository revisions, optional language servers, and coding harnesses can change memory use and timings.
+
+The commands below use Lilt's benchmark scripts to reproduce the methodology. Record the Lilt commit, platform, browser, optional tools, and corpus revisions alongside any new results before making performance claims.
 
 ## 1. Requirements
 
-- Go 1.24+: To build the target binary.
+- Go 1.25+: To build the target binary.
 - Git: Required only for `--clone`.
 - System Utilities: `curl`, `awk`, `find`, `du`, `python3` (standard on Linux and macOS).
 - Disk Space: ~3 GB for the standard multi-repository corpus.
@@ -20,7 +24,7 @@ Clones shallow copies (`--depth 1`) of seven diverse open-source repositories:
 
 ### Execute benchmark suite
 
-Spawns an isolated px0 server process per repository, records metrics, and terminates the instance:
+Spawns an isolated Lilt server process per repository, records metrics, and terminates the instance:
 
 ```bash
 ./benchmark.sh
@@ -136,7 +140,7 @@ Because desktop Electron IDEs (such as VS Code or Cursor) bundle Chromium and No
 1. **Total System Memory is Still ~90% Lighter**:
    Even when adding the browser tab (~80–150 MB) to the Go backend (~20–30 MB), px0's total local system footprint is **~100–180 MB**. Compared to Electron-based IDEs running at ~1,100–1,440 MB, px0 achieves an **85–90% net memory reduction** across the operating system.
 2. **Remote & Cloud Devboxes**:
-   When working across remote servers, cloud VMs, Kubernetes pods, or devboxes (`px0 -host 0.0.0.0`), the remote machine pays **strictly the ~20–30 MB server cost**. The UI rendering workload is offloaded to the developer's local machine. In contrast, remote solutions like `code-server` run heavy Node.js runtimes and remote daemons directly on the server, consuming 500 MB to 1.2 GB+ of server memory.
+   When working across remote servers, cloud VMs, Kubernetes pods, or devboxes (`lilt -host 0.0.0.0`), the remote machine pays **strictly the ~20–30 MB server cost**. The UI rendering workload is offloaded to the developer's local machine. In contrast, remote solutions like `code-server` run heavy Node.js runtimes and remote daemons directly on the server, consuming 500 MB to 1.2 GB+ of server memory.
 3. **Marginal Cost of an Existing Browser**:
    Developers virtually always have a browser running with active tabs. Adding one lightweight tab to an already-warm browser process pool avoids the steep CPU and memory penalty of cold-starting a dedicated, isolated Chromium instance, GPU process, and helper daemons.
 4. **Virtualized DOM Keeps the Tab Lean**:

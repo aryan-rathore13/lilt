@@ -1,155 +1,99 @@
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://px0.ai/logo/px0-logo-dark.png">
-  <source media="(prefers-color-scheme: light)" srcset="https://px0.ai/logo/px0-logo-light.png">
-  <img alt="px0" src="https://px0.ai/logo/px0-logo-dark.png" width="120">
-</picture>
+# Lilt
 
----
+**Find your flow in any codebase.**
 
-px0 is an IDE built for reviewing AI-generated code, optimized for speed. It turns your browser into a zero-latency console with native Git and GitHub integrations, instant search across massive codebases, and seamless handoff to local AI coding harnesses.
+Lilt is a local code reader and review workbench with a warm, light interface. Open a folder or pull request, follow a change, and give your coding agent the context it needs. A single Go binary serves the interface in your browser, keeping your workspace on your machine.
 
-As AI agents author more code directly from the terminal, engineering productivity is no longer constrained by how fast you type - it is constrained by how fast you can review, navigate, and verify changes. px0 replaces heavy, multi-gigabyte editing suites with an instant, distraction-free environment built specifically for this review loop.
+Lilt is an independent adaptation of [px0](https://github.com/px0-ai/px0) by Arpit Bhayani, distributed under the original [MIT license](LICENSE). This first version preserves its backend functionality while introducing Lilt's name, interface, and landing page.
 
-- < 1 ms cold start
-- ~20–30 MB server daemon RAM (~100–180 MB total with browser tab, vs. VS Code's ~1,440 MB)
-- Single static Go binary with zero runtime dependencies (no Electron, no Node, no CGO)
-- ~280 languages tokenized natively via Chroma
+## What you can do
 
-See full performance benchmarks and comparisons at [px0.ai/benchmarks](https://px0.ai/benchmarks).
+- **Get oriented:** fuzzy file navigation, workspace text and regex search, symbol outlines, and optional language-server intelligence.
+- **Review changes:** split or unified diffs, unpushed commits, and GitHub pull requests with inline review comments.
+- **Keep moving:** quick file edits, new files and folders, and Git staging, commits, pushes, and fast-forward pulls.
+- **Work with your agent:** send selections or multi-turn threads to an installed coding harness, including Claude Code, Gemini CLI, Cursor Agent, OpenCode, Codex, Aider, and Goose.
+- **Read more than code:** rendered Markdown with Mermaid diagrams, CSV/TSV tables, images, multiple themes, and optional Vim navigation.
+- **Return to your work:** recent and pinned folders and pull requests in one review workbench.
 
-## Features
+## Get started
 
-- Review workbench: Run `px0` with no arguments to open any directory or pull request from one page, browse the filesystem, and reopen recent and pinned reviews later.
-- GitHub PR reviews & Git panel: Review pull requests directly (`px0 <pr-url>`), inspect scoped merge-base diffs, draft inline review comments, expand recent commits to browse what each one changed, and stage, commit, or push from the browser.
-- Unpushed commit review: Read the commits your branch is ahead of its tracking branch by, one file diff at a time, before you push them.
-- AI coding harness integration: Dispatch edits directly to Claude Code, Gemini CLI, Cursor Agent, Antigravity, OpenCode, Codex, Aider, or Goose with live reloading.
-- Quick edits: Edit and save a file in the browser (`Cmd/Ctrl+E`, `Cmd/Ctrl+S`) with word wrap and unsaved-change protection, and create new files and folders from the sidebar.
-- Fast navigation: Fuzzy file search, symbol outline, and workspace regex search in milliseconds.
-- Remote-first: Run on any remote server, VM, or container and browse locally without SSH key setups or remote daemons.
-- Virtual rendering: Opens 400,000-line files smoothly by mounting only visible rows; frees memory back to the OS after 15 seconds of inactivity.
-- Rich code viewer: 14 built-in themes, rendered Markdown with Mermaid diagrams, CSV/TSV table view, image inspector, and optional zero-config LSP for Go-to-Definition and hover.
+**The first Lilt release is pending.** Release downloads and the installer require the public repository and its first binary release to be published. Until then, build from this checkout.
 
-## Installation
+### Build from source
 
-Quick install (macOS, Linux, BSD):
+Requires **Go 1.25+** and **Node.js or Bun** to bundle the browser interface. Git enables repository features; coding harnesses and language servers are optional, separately installed tools.
+
+Once the repository is published:
 
 ```bash
-curl -fsSL https://px0.ai/install.sh | sh
+git clone https://github.com/aryan-rathore13/lilt.git
+cd lilt
 ```
 
-Build from source (requires Go 1.24+ and Node.js or Bun):
+From the repository directory:
 
 ```bash
-git clone https://github.com/px0-ai/px0.git
-cd px0
-make build
-install -d ~/.local/bin && install px0 ~/.local/bin/
+node scripts/build-web.js
+go build -trimpath -o lilt .
+./lilt .
 ```
 
-To update an existing installation:
+You can use `bun scripts/build-web.js` instead of Node.js, or `make build` with Node.js installed. The compiled application does not need a Node.js runtime, Electron, or a database.
+
+### Install a published release
+
+After the first release is available, macOS, Linux, and BSD users can run:
 
 ```bash
-px0 --update
+curl -fsSL https://raw.githubusercontent.com/aryan-rathore13/lilt/main/install.sh | sh
 ```
 
-## Usage
+The installer selects a binary for your platform and verifies its release checksum. [Read the script](install.sh) before running it. Windows users can download the matching `.exe` from [Releases](https://github.com/aryan-rathore13/lilt/releases), rename it to `lilt.exe`, and add its folder to `PATH`.
+
+The published landing page will also serve `/install.sh`. Its installation command uses the page's actual HTTPS origin; no custom domain is required.
+
+## Make yourself at home
 
 ```bash
-# Open the review workbench: pick any directory or paste a PR URL
-px0
-
-# Inspect current directory
-px0 .
-
-# Inspect a specific directory or file
-px0 ~/workspace/project
-px0 main.go:42
-
-# Review a GitHub pull request
-px0 https://github.com/owner/repo/pull/123
-
-# Remote or headless server mode
-px0 -host 0.0.0.0 -port 7777 ~/workspace
-
-# Behind a reverse proxy under a subpath
-px0 -base-path /rev-123/ -host 0.0.0.0 -port 7777 ~/workspace
+lilt                                          # open the review workbench
+lilt .                                        # inspect the current directory
+lilt ~/workspace/project                      # open a project
+lilt main.go:42                               # jump to a line
+lilt https://github.com/owner/repo/pull/123     # review a pull request
+lilt --update                                 # update from published Lilt releases
 ```
 
-When px0 binds to `0.0.0.0`, it prints a `network` URL for every unique
-non-loopback IPv4 address on the machine, using the port selected by the
-listener:
+Use `Cmd/Ctrl+P` to find a file, `Cmd/Ctrl+Shift+F` to search the workspace, `Cmd/Ctrl+D` to inspect a diff, and `Cmd/Ctrl+,` to adjust preferences. See the [feature guides](docs/features/README.md) for the complete interface.
 
-```text
-  url:        http://0.0.0.0:7777
-  network:    http://10.0.0.15:7777
-  network:    http://192.168.1.42:7777
-```
+Settings live in `$XDG_CONFIG_HOME/lilt/` or `~/.lilt/`. Workbench state lives in `$XDG_STATE_HOME/lilt/` or `~/.lilt/`. Lilt uses its own preferences and state; it does not migrate an existing px0 installation.
 
-With no target, px0 serves the [review workbench](docs/features/workbench.md)
-instead, which runs each directory or PR you open as its own px0 under
-`/w/<id>/` on the same port. Its list of what you opened is saved in
-`$XDG_STATE_HOME/px0/workbench.json` (or `~/.px0/workbench.json`).
+## Your workspace stays with you
 
-Open the address that is reachable from your local machine. The list can
-include LAN, VPN, and container-network addresses, depending on the remote
-host's interfaces.
+Lilt binds to `127.0.0.1:7777` by default. The Go process reads your workspace, runs Git and optional language servers, and coordinates your installed coding harnesses. The browser talks to that process on the same origin.
 
-Access securely over Tailscale, WireGuard, reverse proxy, or Cloudflare Tunnel
-with zero remote setup overhead and workspace-confined file access
-(path traversal protection & DNS rebinding checks). Anyone who can reach the
-address can also edit files in that workspace, so expose it only over trusted networks.
-The workbench goes further: anyone who can reach it can browse and open any directory px0 can read.
+The public landing page is a separate static site, prepared for **Vercel**. It distributes the installer; GitHub Releases distributes binaries. Installation needs no hosted application backend. See [deployment and first publication](docs/deployment.md).
+
+For a remote workspace, run Lilt on a persistent machine and connect through a private network or authenticated tunnel. Anyone who can reach the workspace server may be able to read or modify files and run installed agents. The workbench can browse directories the server user can access. Keep it behind access controls; see [remote workspaces](docs/features/remote-workspaces.md).
 
 ## Development
 
 ```bash
-git clone https://github.com/px0-ai/px0.git
-cd px0
-
-# Run tests
-make test
-
-# Live frontend development (serves web/ assets directly from disk)
-go run . -dev .
-
-# Build binary
-make build
+make build                      # bundle interface and compile ./lilt
+make test                       # bundle interface and run Go tests
+node scripts/check-web.js       # validate browser modules and frontend tests
+node scripts/build-site.js      # build the landing page into site/dist
+go run . .                      # run the bundled application from source
 ```
 
-## Benchmarks
+After changing browser modules, rerun `node scripts/build-web.js` and restart the Go process to refresh its embedded assets.
 
-```bash
-# Clone the benchmark corpus (~3 GB: Linux, Kubernetes, TypeScript, etc.)
-./benchmark.sh --clone
+Performance depends on the workspace, machine, browser, and optional tools. [BENCHMARKS.md](BENCHMARKS.md) retains historical upstream px0 measurements and reproduction commands; these are not new Lilt results.
 
-# Run benchmarks across the corpus
-./benchmark.sh
+- [Documentation](docs/README.md)
+- [Architecture](docs/internals/architecture.md)
+- [Publishing releases](PUBLISHING.md)
+- [Contributing](CONTRIBUTING.md)
 
-# Compare px0 directly against VS Code on the current workspace
-./benchmark.sh --vscode .
+## Credits and license
 
-# Profile memory lifecycle (index, search, idle memory release)
-./benchmark.sh --memory bench-repos/linux
-```
-
-> **Architecture & Memory Accounting**: px0 separates the lightweight native Go daemon from the browser-rendered UI. The Go server consumes ~20–30 MB resident RAM (RSS). The active browser tab allocates ~80–150 MB for DOM nodes, V8 JS runtime, and GPU compositing. Combined, the total local memory footprint is ~100–180 MB (~85–90% lighter than Electron IDEs like VS Code at ~1,440 MB, which bundle dedicated Chromium and Node runtimes). In remote or container environments (`px0 -host 0.0.0.0`), the remote host pays strictly the ~20–30 MB server cost. See [BENCHMARKS.md](BENCHMARKS.md) for full methodology and breakdowns.
-
-## Documentation
-
-- [Docs](https://px0.ai/docs)
-- [Benchmarks](https://px0.ai/#bench)
-- [Blog](https://px0.ai/blog)
-- [Changelog](https://px0.ai/changelog)
-- [Partners](https://px0.ai/design-partners)
-
-## Design Partners
-
-When AI coding agents generate large diffs across repositories every day, code authoring is no longer the bottleneck. Verification and review are.
-
-We are looking for engineering teams (10+ engineers or teams running active agent workflows) as design partners. Partners receive direct Slack Connect access to the core team, rapid turnaround on custom harness integrations, and direct input on the roadmap.
-
-Learn more on the [Design Partners page](https://px0.ai/design-partners).
-
-## License
-
-[MIT License](LICENSE) © Arpit Bhayani
+Built on [px0](https://github.com/px0-ai/px0) by **Arpit Bhayani**. The original MIT copyright and license are preserved in [LICENSE](LICENSE). The external [`github.com/px0-ai/harness`](https://github.com/px0-ai/harness) integration remains an upstream dependency. Lilt is maintained independently by [Aryan Rathore](https://github.com/aryan-rathore13).

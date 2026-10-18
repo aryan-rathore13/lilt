@@ -1,15 +1,15 @@
 # Git Forge PR Review & Provider Architecture
 
-This document describes the design and implementation of px0's pull request review feature: the `GitProvider` abstraction layer ([`provider.go`](../../provider.go)), GitHub REST implementation ([`github.go`](../../github.go)), checkout lifecycle and progress reporting ([`pr.go`](../../pr.go)), merge-base diffing ([`git.go`](../../git.go)), and the frontend review interface ([`web/src/pr.js`](../../web/src/pr.js), [`web/src/linecomment.js`](../../web/src/linecomment.js)).
+This document describes the design and implementation of lilt's pull request review feature: the `GitProvider` abstraction layer ([`provider.go`](../../provider.go)), GitHub REST implementation ([`github.go`](../../github.go)), checkout lifecycle and progress reporting ([`pr.go`](../../pr.go)), merge-base diffing ([`git.go`](../../git.go)), and the frontend review interface ([`web/src/pr.js`](../../web/src/pr.js), [`web/src/linecomment.js`](../../web/src/linecomment.js)).
 
 ---
 
 ## 1. Zero-Dependency, Process-Scoped Design
 
-Two core px0 tenets shape pull request reviews:
+Two core lilt tenets shape pull request reviews:
 
-- **Zero-dependency shell-out**: Like `git.go` (which links no Go git library), px0 avoids external forge SDKs. `github.go` uses standard Go `net/http` against the GitHub REST API, plus an optional shell-out to `gh auth token`. Checkout itself uses standard `git fetch`, `git worktree add`, or `git clone` via `exec.Command`.
-- **Stateless on disk**: px0 maintains no persistent cache in `~/.px0`. A PR checkout is strictly process-scoped: `checkoutPR` (`pr.go`) places the worktree in `os.MkdirTemp("", "px0-pr-*")`, and `prSession.Close` removes it upon exit (`Ctrl+C` or normal shutdown). This ensures zero leftover disk clutter and prevents stale cache bugs.
+- **Zero-dependency shell-out**: Like `git.go` (which links no Go git library), lilt avoids external forge SDKs. `github.go` uses standard Go `net/http` against the GitHub REST API, plus an optional shell-out to `gh auth token`. Checkout itself uses standard `git fetch`, `git worktree add`, or `git clone` via `exec.Command`.
+- **Stateless on disk**: lilt maintains no persistent cache in `~/.lilt`. A PR checkout is strictly process-scoped: `checkoutPR` (`pr.go`) places the worktree in `os.MkdirTemp("", "lilt-pr-*")`, and `prSession.Close` removes it upon exit (`Ctrl+C` or normal shutdown). This ensures zero leftover disk clutter and prevents stale cache bugs.
 - **In-memory draft comments**: Draft comments live in `prSession.comments` as a thread-safe, mutex-guarded slice in server memory. They never touch disk and vanish when the process exits (submitted or discarded).
 
 ---
@@ -40,14 +40,14 @@ type GitProvider interface {
   - `HeadRepoCloneURL`, `HeadIsFork`
 
 ### URL Matching & Routing
-Pull requests are opened exclusively via `px0 <url>`. URL routing in `main.go` calls:
+Pull requests are opened exclusively via `lilt <url>`. URL routing in `main.go` calls:
 ```go
 provider, target, ok := DetectPRURL(arg0)
 ```
 - Iterates over `defaultProviders` (which includes `&GitHubProvider{}`).
-- If a provider matches and successfully parses the URL, px0 enters PR review mode.
-- Bare numbers (e.g. `px0 123`) and file paths are never mistaken for PR targets; they are processed as regular filesystem paths.
-- Running `px0 pr` outputs an explicit error guiding the user to pass the URL directly.
+- If a provider matches and successfully parses the URL, lilt enters PR review mode.
+- Bare numbers (e.g. `lilt 123`) and file paths are never mistaken for PR targets; they are processed as regular filesystem paths.
+- Running `lilt pr` outputs an explicit error guiding the user to pass the URL directly.
 
 ---
 
@@ -68,8 +68,8 @@ sequenceDiagram
     Prov-->>PR: PRMeta (title, refs, state, merged)
     PR->>Git: Local clone exists? (git remote get-url origin)
     alt Matches Origin
-        PR->>Git: git fetch refs/pull/n/head:refs/px0/pr/n
-        PR->>Git: git worktree add --detach <tmp> refs/px0/pr/n
+        PR->>Git: git fetch refs/pull/n/head:refs/lilt/pr/n
+        PR->>Git: git worktree add --detach <tmp> refs/lilt/pr/n
     else External / Fork
         PR->>Git: git clone --filter=blob:none --branch <headRef> <tmp>
     end
@@ -86,7 +86,7 @@ sequenceDiagram
 4. `PR #... checked out (<title>)` (or `[merged]` if already merged)
 
 ### Merged PR Handling
-When `meta.Merged` is true, px0 does not block or prompt: it proceeds immediately to check out the PR and surfaces the merged status with a `[merged]` badge in the CLI and a purple `Merged` pill badge in the review header.
+When `meta.Merged` is true, lilt does not block or prompt: it proceeds immediately to check out the PR and surfaces the merged status with a `[merged]` badge in the CLI and a purple `Merged` pill badge in the review header.
 
 ---
 
@@ -151,12 +151,12 @@ A PR checkout is process-scoped (§1) but not read-only: the sidebar git panel (
 
 ### Why the Checkout Needs Its Own Push/Pull
 
-The worktree `checkoutPR` produces sits on a **detached** `HEAD` at `refs/px0/pr/<N>` (§3) — not the PR's branch name, and (in the worktree case) `origin` points at the *base* repository, which for a fork PR is not where the PR's commits live. A bare `git push`/`git pull` would either push nowhere useful or fail outright, so both operations are reimplemented against the PR's actual metadata instead of the checkout's local remote config.
+The worktree `checkoutPR` produces sits on a **detached** `HEAD` at `refs/lilt/pr/<N>` (§3) — not the PR's branch name, and (in the worktree case) `origin` points at the *base* repository, which for a fork PR is not where the PR's commits live. A bare `git push`/`git pull` would either push nowhere useful or fail outright, so both operations are reimplemented against the PR's actual metadata instead of the checkout's local remote config.
 
 ### `prSession.Pull`: Fast-Forward Only, Same as Everywhere Else
 
 1. Refuses immediately if `gitHasUncommittedChanges(worktree)` — nothing here stashes.
-2. Re-fetches the PR head: `git fetch origin refs/pull/<N>/head:refs/px0/pr/<N>` in the worktree case (shared refs with `srcRepo`, same as the initial checkout), or a direct fetch of `meta.HeadRepoCloneURL`/`meta.HeadRef` into `FETCH_HEAD` in the bare-clone case.
+2. Re-fetches the PR head: `git fetch origin refs/pull/<N>/head:refs/lilt/pr/<N>` in the worktree case (shared refs with `srcRepo`, same as the initial checkout), or a direct fetch of `meta.HeadRepoCloneURL`/`meta.HeadRef` into `FETCH_HEAD` in the bare-clone case.
 3. `git merge-base --is-ancestor <newRef> HEAD` — if the fetched ref is already an ancestor of the current checkout, it's a no-op ("already up to date"), not an error.
 4. `git merge-base --is-ancestor HEAD <newRef>` — if the current checkout is a clean ancestor of the fetched ref, `git reset --hard <newRef>` fast-forwards it (safe: step 1 already guaranteed a clean working tree).
 5. Otherwise — a local commit the PR head doesn't have, or a force-pushed head that isn't a fast-forward at all — `errPRDiverged` refuses the pull. Exactly like the plain-workspace path, this never invokes `git merge`, so there is never a real conflict to clean up.
@@ -170,7 +170,7 @@ Unlike a formal review submission, Push is not gated on `p.writeAccess` — that
 
 ### Why This Matters for the Checkout's Lifetime
 
-`prSession.Close` (§1) force-removes the worktree and deletes `refs/px0/pr/<N>`/`refs/px0/base/<N>` when the process exits, with no warning if there are uncommitted or unpushed commits sitting in it. Push is the only way work done in a PR checkout survives past the session — the git panel exists in PR review specifically so that loop (edit, commit, push) never requires dropping out to a terminal mid-review.
+`prSession.Close` (§1) force-removes the worktree and deletes `refs/lilt/pr/<N>`/`refs/lilt/base/<N>` when the process exits, with no warning if there are uncommitted or unpushed commits sitting in it. Push is the only way work done in a PR checkout survives past the session — the git panel exists in PR review specifically so that loop (edit, commit, push) never requires dropping out to a terminal mid-review.
 
 ---
 
@@ -185,6 +185,6 @@ Unlike a formal review submission, Push is not gated on `p.writeAccess` — that
   - Houses **⚡ Batch Apply** and **Submit Review** controls.
 - **Child PR Launching**:
   - Command Palette **Git: Open Pull Request…** posts to `/api/pr/launch`, or, in a workbench child (`S.meta.workbench` set), to the workbench's `/api/wb/open` (see [workbench.md](workbench.md)).
-  - Spawns `px0 -y <url>` in a new detached process on an ephemeral port.
+  - Spawns `lilt -y <url>` in a new detached process on an ephemeral port.
 - **Git Panel Resync (`web/src/pr.js`'s `refreshPRMeta`)**:
   - Called by `gitpanel.js` after a successful Pull. Re-fetches `/api/pr/meta`, re-renders the PR bar, and re-fetches existing/draft comments, so a PR that moved forward under the reviewer never leaves the bar, diff warning, or comment threads showing the state from session start.

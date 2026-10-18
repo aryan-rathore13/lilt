@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	defaultRepo       = "px0-ai/px0"
+	defaultRepo       = "aryan-rathore13/lilt"
 	updateCheckPeriod = 24 * time.Hour
 )
 
@@ -40,22 +40,22 @@ type updateState struct {
 }
 
 func getRepoName() string {
-	if r := os.Getenv("PX0_REPO"); r != "" {
+	if r := os.Getenv("LILT_REPO"); r != "" {
 		return r
 	}
 	return defaultRepo
 }
 
 func stateFilePath() string {
-	// Respect XDG_STATE_HOME or fallback to ~/.local/state/px0 or ~/.px0
+	// Respect XDG_STATE_HOME or fallback to ~/.local/state/lilt or ~/.lilt
 	if xdg := os.Getenv("XDG_STATE_HOME"); xdg != "" {
-		return filepath.Join(xdg, "px0", "update_check.json")
+		return filepath.Join(xdg, "lilt", "update_check.json")
 	}
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return filepath.Join(os.TempDir(), "px0_update_check.json")
+		return filepath.Join(os.TempDir(), "lilt_update_check.json")
 	}
-	return filepath.Join(home, ".px0", "update_check.json")
+	return filepath.Join(home, ".lilt", "update_check.json")
 }
 
 func readUpdateState() (*updateState, error) {
@@ -123,7 +123,7 @@ func compareSemver(v1, v2 string) int {
 
 // fetchLatestRelease queries the GitHub API or release redirect for the latest version.
 func fetchLatestRelease(repo string) (*githubRelease, error) {
-	apiURL := os.Getenv("PX0_UPDATE_URL")
+	apiURL := os.Getenv("LILT_UPDATE_URL")
 	if apiURL == "" {
 		apiURL = fmt.Sprintf("https://api.github.com/repos/%s/releases/latest", repo)
 	}
@@ -133,7 +133,7 @@ func fetchLatestRelease(repo string) (*githubRelease, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", "px0-updater")
+	req.Header.Set("User-Agent", "lilt-updater")
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
 
 	resp, err := client.Do(req)
@@ -226,12 +226,12 @@ func downloadVerifiedAsset(client *http.Client, assetURL, checksumURL, assetName
 }
 
 // autoUpdate runs in a background goroutine after the server has already
-// started listening, so px0 never makes a network call before serving. It
+// started listening, so lilt never makes a network call before serving. It
 // reuses the cached daily-check state so it only hits the network once
 // every updateCheckPeriod; on the days it does check, a newer release is
 // installed in place and a notice is printed on the CLI instructing the user
-// to restart px0. Any failure (network, permissions, verification) is non-fatal:
-// px0 continues running on the current binary.
+// to restart lilt. Any failure (network, permissions, verification) is non-fatal:
+// lilt continues running on the current binary.
 func autoUpdate(currentVersion string) {
 	if uiQuiet {
 		return
@@ -259,7 +259,7 @@ func autoUpdate(currentVersion string) {
 
 	if latestVer == "" || compareSemver(latestVer, currentVersion) <= 0 {
 		if uiVerbose {
-			uiStatus("ok", fmt.Sprintf("px0 is up to date (v%s)", currentVersion), "", 0, os.Stdout)
+			uiStatus("ok", fmt.Sprintf("lilt is up to date (v%s)", currentVersion), "", 0, os.Stdout)
 		}
 		return
 	}
@@ -275,7 +275,7 @@ func autoUpdate(currentVersion string) {
 		latestVer = strings.TrimPrefix(rel.TagName, "v")
 		if compareSemver(latestVer, currentVersion) <= 0 {
 			if uiVerbose {
-				uiStatus("ok", fmt.Sprintf("px0 is up to date (v%s)", currentVersion), "", 0, os.Stdout)
+				uiStatus("ok", fmt.Sprintf("lilt is up to date (v%s)", currentVersion), "", 0, os.Stdout)
 			}
 			return
 		}
@@ -290,7 +290,7 @@ func autoUpdate(currentVersion string) {
 		return
 	}
 
-	uiStatus("step", fmt.Sprintf("updating px0 v%s -> v%s...", currentVersion, latestVer), "pass -no-update to skip", 0, os.Stdout)
+	uiStatus("step", fmt.Sprintf("updating lilt v%s -> v%s...", currentVersion, latestVer), "pass -no-update to skip", 0, os.Stdout)
 
 	if err := installUpdate(rel, latestVer, execPath); err != nil {
 		uiStatus("warn", fmt.Sprintf("auto-update failed: %v", err), "continuing with current version", 0, os.Stderr)
@@ -299,10 +299,10 @@ func autoUpdate(currentVersion string) {
 
 	writeUpdateState(&updateState{LastChecked: time.Now(), LatestVer: latestVer})
 
-	uiStatus("ok", fmt.Sprintf("px0 has been updated to v%s", latestVer), "restart px0 to see the latest changes", 0, os.Stdout)
+	uiStatus("ok", fmt.Sprintf("lilt has been updated to v%s", latestVer), "restart lilt to see the latest changes", 0, os.Stdout)
 }
 
-// runSelfUpdate implements px0 --update.
+// runSelfUpdate implements lilt --update.
 func runSelfUpdate(currentVer string) error {
 	repo := getRepoName()
 	uiStatus("step", fmt.Sprintf("checking for updates from %s...", repo), "", 0, os.Stdout)
@@ -314,7 +314,7 @@ func runSelfUpdate(currentVer string) error {
 
 	latestVer := strings.TrimPrefix(rel.TagName, "v")
 	if compareSemver(latestVer, currentVer) <= 0 {
-		uiStatus("ok", fmt.Sprintf("px0 is already up to date (v%s)", currentVer), "", 0, os.Stdout)
+		uiStatus("ok", fmt.Sprintf("lilt is already up to date (v%s)", currentVer), "", 0, os.Stdout)
 		return nil
 	}
 
@@ -339,7 +339,7 @@ func runSelfUpdate(currentVer string) error {
 		LatestVer:   latestVer,
 	})
 
-	uiStatus("ok", fmt.Sprintf("px0 successfully updated to v%s at %s", latestVer, execPath), "", 0, os.Stdout)
+	uiStatus("ok", fmt.Sprintf("lilt successfully updated to v%s at %s", latestVer, execPath), "", 0, os.Stdout)
 	return nil
 }
 
@@ -351,7 +351,7 @@ func installUpdate(rel *githubRelease, latestVer, execPath string) error {
 	if runtime.GOOS == "windows" {
 		ext = ".exe"
 	}
-	expectedAsset := fmt.Sprintf("px0-%s-%s-%s%s", latestVer, runtime.GOOS, runtime.GOARCH, ext)
+	expectedAsset := fmt.Sprintf("lilt-%s-%s-%s%s", latestVer, runtime.GOOS, runtime.GOARCH, ext)
 
 	var downloadURL, checksumURL string
 	for _, asset := range rel.Assets {
@@ -374,14 +374,14 @@ func installUpdate(rel *githubRelease, latestVer, execPath string) error {
 
 	// Download to temporary file in the same directory as the executable (for atomic rename)
 	dir := filepath.Dir(execPath)
-	tmpFile, err := os.CreateTemp(dir, "px0-update-*")
+	tmpFile, err := os.CreateTemp(dir, "lilt-update-*")
 	if err != nil {
 		// If directory is not writable, warn user about permissions
 		if os.IsPermission(err) {
-			return fmt.Errorf("permission denied writing to %s. Try running with 'sudo px0 --update'", dir)
+			return fmt.Errorf("permission denied writing to %s. Try running with 'sudo lilt --update'", dir)
 		}
 		// Try temp directory as fallback
-		tmpFile, err = os.CreateTemp("", "px0-update-*")
+		tmpFile, err = os.CreateTemp("", "lilt-update-*")
 		if err != nil {
 			return fmt.Errorf("could not create temporary file: %w", err)
 		}
@@ -428,7 +428,7 @@ func installUpdate(rel *githubRelease, latestVer, execPath string) error {
 			// If cross-device link error, copy instead
 			if err := copyOrMove(tmpPath, execPath); err != nil {
 				if os.IsPermission(err) {
-					return fmt.Errorf("permission denied replacing %s. Try running with 'sudo px0 --update'", execPath)
+					return fmt.Errorf("permission denied replacing %s. Try running with 'sudo lilt --update'", execPath)
 				}
 				return fmt.Errorf("failed to replace binary %s: %w", execPath, err)
 			}
@@ -447,7 +447,7 @@ func copyOrMove(src, dst string) error {
 
 	// Write to temporary file in target directory first
 	dir := filepath.Dir(dst)
-	tmp, err := os.CreateTemp(dir, "px0-replace-*")
+	tmp, err := os.CreateTemp(dir, "lilt-replace-*")
 	if err != nil {
 		return err
 	}

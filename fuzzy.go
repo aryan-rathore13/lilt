@@ -1,7 +1,7 @@
 package main
 
 import (
-	"px0/internal/fuzzy"
+	"github.com/aryan-rathore13/lilt/internal/fuzzy"
 	"runtime"
 	"sort"
 	"strings"

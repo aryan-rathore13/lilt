@@ -1,4 +1,4 @@
-module px0
+module github.com/aryan-rathore13/lilt
 
 go 1.25
 

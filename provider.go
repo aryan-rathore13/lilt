@@ -15,7 +15,7 @@ type PRTarget struct {
 	URL      string // original URL
 }
 
-// PRMeta holds the normalized metadata px0 needs to check out a PR,
+// PRMeta holds the normalized metadata lilt needs to check out a PR,
 // compute diffs, and label the review UI.
 type PRMeta struct {
 	Number           int

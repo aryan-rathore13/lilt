@@ -629,7 +629,7 @@ function showMoreCommitFiles(el) {
 }
 
 function openCommitPath(el, path) {
-  // px0 has no diff for a binary file, so say so rather than doing nothing.
+  // lilt has no diff for a binary file, so say so rather than doing nothing.
   if (cachedCommitFiles(el.dataset.sha)?.find(f => f.path === path)?.binary) {
     showToast('!', 'Binary file, no diff to show');
     return;
