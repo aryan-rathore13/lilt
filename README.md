@@ -111,4 +111,4 @@ Performance depends on the workspace, machine, browser, and optional tools. [BEN
 
 ## Credits and license
 
-Built on [px0](https://github.com/px0-ai/px0) by **Arpit Bhayani**. The original MIT copyright and license are preserved in [LICENSE](LICENSE). The external [`github.com/px0-ai/harness`](https://github.com/px0-ai/harness) integration remains an upstream dependency. Lilt is maintained independently by [Aryan Rathore](https://github.com/aryan-rathore13).
+Lilt is maintained independently by [Aryan Rathore](https://github.com/aryan-rathore13).
