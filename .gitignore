@@ -1,0 +1,38 @@
+dist/
+bench-repos/
+lilt
+lilt.exe
+*.test
+*.prof
+
+# Go
+*.out
+
+# IDE/Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+build/
+web/app.js
+web/workbench.js
+web/vendor/*.min.js
+web/vendor/*.min.js.gz
+
+# Logs
+*.log
+lilt
+
+# Landing builds and provider-local settings
+site/dist/
+.vercel/
+.env
+.env.*
+!.env.example
+.vercel
+.env*

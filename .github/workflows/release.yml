@@ -1,0 +1,80 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag to release (e.g. v0.2.0)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build & Release lilt
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Bundle Web Assets
+        run: |
+          node ./scripts/build-web.js
+
+      - name: Determine Version
+        id: get_version
+        env:
+          REQUESTED_VERSION: ${{ github.event.inputs.version }}
+        run: |
+          if [ -n "$REQUESTED_VERSION" ]; then
+            VER="${REQUESTED_VERSION#v}"
+          elif [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            VER="${GITHUB_REF#refs/tags/v}"
+          else
+            VER="$(tr -d ' \r\n' < VERSION)"
+          fi
+          if ! printf '%s\n' "$VER" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+([-.][A-Za-z0-9.-]+)?$'; then
+            echo "Invalid release version: $VER" >&2
+            exit 1
+          fi
+          TAG="v$VER"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+          # Ensure VERSION file matches the release version.
+          printf '%s\n' "$VER" > VERSION
+
+      - name: Build Cross-Platform Binaries and Checksums
+        env:
+          LILT_POSTHOG_KEY: ${{ secrets.LILT_POSTHOG_KEY }}
+        run: ./build.sh
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.get_version.outputs.tag }}
+          name: ${{ steps.get_version.outputs.tag }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            dist/lilt-*
+            dist/checksums.txt

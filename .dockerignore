@@ -1,0 +1,16 @@
+.git
+dist/
+bench-repos/
+lilt
+lilt.exe
+*.test
+*.prof
+*.out
+.vscode/
+.idea/
+build/
+*.log
+.vercel/
+.env
+.env.*
+site/dist/
